@@ -218,7 +218,7 @@ func _update_hud() -> void:
 	else:
 		lines.append("[W/S] Throttle · [A/D] Steer")
 	if poi != "" and World.economy_node_at_poi(poi) != "":
-		lines.append("[1-4] Load item · [R] Deliver carried")
+		lines.append(game.cargo_prompt())
 	hud.set_prompt("\n".join(lines))
 
 # ---------------------------------------------------------------- fixed-wing (kinematic game physics, assists layered)

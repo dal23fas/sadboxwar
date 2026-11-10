@@ -14,7 +14,9 @@ static const char* kRealismSettingsKey = "realism.json";
 
 Json JsonApi::handleRealism(const Json& id, const std::string& op, const Json& a) {
     if (op == "load_presets") {
-        Status s = realism_.loadPresetsFromFile(a.get("path").asString());
+        Status s;
+        if (a.has("presets_text")) { Json pj; std::string err; if (!Json::parse(a.get("presets_text").asString(), pj, &err)) s = Status::Fail("presets_parse_error", err); else s = realism_.loadPresets(pj); }
+        else s = realism_.loadPresetsFromFile(a.get("path").asString());
         if (!s) return fail(id, s.code, s.message);
         // Auto-load previously saved settings if present (settings persist independently of world saves).
         std::string bytes;
@@ -194,7 +196,8 @@ Json JsonApi::handle(const Json& req) {
     if (op == "load_presets" || op.rfind("realism_", 0) == 0) return handleRealism(id, op, a);
     if (op == "ping") { Json r = Json::object(); r.set("core", "EFWorldCore"); r.set("save_schema", kSaveSchemaVersion); r.set("event_schema", kEventSchemaVersion); r.set("ready", ready_); return ok(id, r); }
     if (op == "start_new_game") {
-        WorldContent c; Status s = loadContentFromFile(a.get("content_path").asString(), c);
+        // content_text (JSON string) is preferred by hosts whose files live inside a pack (Godot res://); content_path for tools.
+        WorldContent c; Status s = a.has("content_text") ? loadContentFromString(a.get("content_text").asString(), c) : loadContentFromFile(a.get("content_path").asString(), c);
         if (!s) return fail(id, s.code, s.message);
         s = world_.initFromContent(c);
         if (!s) return fail(id, s.code, s.message);

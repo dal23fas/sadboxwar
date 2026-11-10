@@ -22,6 +22,10 @@ func _ready() -> void:
 	World.state_updated.connect(_on_state_updated)
 	hud.show_status("Connecting to EFWorldCore…")
 	var c: Dictionary = World.connect_backend()
+	if not c.get("ok", false) and "--smoke" in OS.get_cmdline_user_args():
+		print("SMOKE FAIL: core not available: %s" % c.get("reason", "?"))
+		get_tree().quit(1)
+		return
 	if not c.get("ok", false):
 		hud.show_fatal("CORE NOT AVAILABLE — %s\n\nStart the dev server first, then press F5 / restart the scene:\n  Windows:  build\\Release\\ef_server.exe   (or build\\ef_server.exe)\n  Linux/macOS:  ./build/ef_server\n\nBuild it once with:  cmake -S . -B build && cmake --build build --config Release\nOr build the GDExtension (Source/EFGodot) so no server is needed." % c.get("reason", "?"))
 		print("[Game] core not available: ", c.get("reason", "?"))
@@ -38,12 +42,11 @@ func _retry_connect() -> void:
 		hud.toast("still no core: %s" % c.get("reason", "?"))
 
 func _on_world_connected(backend: String) -> void:
-	var root := ProjectSettings.globalize_path("res://")
-	var content_path := root.path_join("../Content/Data/asterion_island_v1.json")
-	var presets_path := root.path_join("../Content/Data/realism_presets_v1.json")
+	var content_path := "res://data/asterion_island_v1.json"      # exported builds / CI carry a copy of Content/Data here
+	var presets_path := "res://data/realism_presets_v1.json"
 	if not FileAccess.file_exists(content_path):
-		content_path = root.path_join("data/asterion_island_v1.json")      # exported builds carry a copy
-		presets_path = root.path_join("data/realism_presets_v1.json")
+		content_path = ProjectSettings.globalize_path("res://").path_join("../Content/Data/asterion_island_v1.json")
+		presets_path = ProjectSettings.globalize_path("res://").path_join("../Content/Data/realism_presets_v1.json")
 	if not World.start_new_game(content_path, presets_path):
 		hud.show_fatal("start_new_game failed (see Output)")
 		return
@@ -55,6 +58,10 @@ func _on_world_connected(backend: String) -> void:
 	_build_vehicles()
 	_spawn_player()
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	if "--smoke" in OS.get_cmdline_user_args():
+		var t := EFSmokeTest.new(self)
+		add_child(t)
+		t.run()
 
 # ---------------------------------------------------------------- scene construction (placeholder meshes)
 func _build_environment() -> void:
@@ -222,6 +229,20 @@ func cargo_action(item_index: int, deliver: bool) -> void:
 	else:
 		r = World.load_cargo(node_id, item_id, 1)
 	hud.toast(("Delivered " if deliver else "Loaded ") + item_id if r.get("ok", false) else "%s: %s" % [r.get("code", ""), r.get("message", "")])
+
+func item_index(item_id: String) -> int:
+	var items: Array = World.content.get("items", [])
+	for i in range(items.size()):
+		if items[i].get("id", "") == item_id:
+			return i
+	return -1
+
+func cargo_prompt() -> String:
+	var parts := []
+	var items: Array = World.content.get("items", [])
+	for i in range(min(4, items.size())):
+		parts.append("[%d] %s" % [i + 1, items[i].get("label", items[i].get("id", ""))])
+	return "Load: " + " · ".join(parts) + "   [R] Deliver carried"
 
 func _carried_quantity(item_id: String) -> int:
 	if possessed != null:

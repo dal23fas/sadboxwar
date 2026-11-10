@@ -1,6 +1,8 @@
-# Builds the core, runs the tests on three OSes, and publishes the Windows/Linux binaries to the `dist` branch
-# so they can be downloaded with a plain link:
-#   https://github.com/dal23fas/sadboxwar/raw/dist/windows/ef_server.exe
+# EARTH FRONTIER CI
+#  core         : build + test the engine-neutral core on Windows/Linux/macOS
+#  game         : GDExtension (Linux + Windows/MinGW), headless Godot validation, gameplay smoke test,
+#                 Windows + Linux export, EarthFrontier_<date>_<sha>.zip on Releases
+#  publish-core : ef_server binaries on the dist branch (editor/dev use only)
 name: build
 on:
   push:
@@ -8,6 +10,9 @@ on:
   workflow_dispatch:
 permissions:
   contents: write
+env:
+  GODOT_VERSION: "4.3"
+  GODOT_RELEASE: "4.3-stable"
 jobs:
   core:
     strategy:
@@ -25,13 +30,83 @@ jobs:
         run: |
           mkdir -p out
           cp build/Release/ef_server.exe build/Release/ef_headless.exe out/ 2>/dev/null || cp build/ef_server build/ef_headless out/
-          ls -la out
       - uses: actions/upload-artifact@v4
         with:
           name: ef_server-${{ matrix.os }}
           path: out/*
 
-  publish:
+  game:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - name: Tools (scons, mingw)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y scons g++-mingw-w64-x86-64-posix gcc-mingw-w64-x86-64-posix binutils-mingw-w64-x86-64 unzip
+      - name: godot-cpp
+        run: git clone --depth 1 -b ${GODOT_RELEASE} https://github.com/godotengine/godot-cpp Source/EFGodot/godot-cpp
+      - name: Build GDExtension (Linux)
+        working-directory: Source/EFGodot
+        run: scons platform=linux target=template_release -j4
+      - name: Build GDExtension (Windows, MinGW)
+        working-directory: Source/EFGodot
+        run: scons platform=windows use_mingw=yes target=template_release -j4
+      - name: Enable extension + copy content into the project
+        run: |
+          ls -la godot/bin
+          cp godot/bin/efworldcore.gdextension.template godot/bin/efworldcore.gdextension
+          mkdir -p godot/data && cp Content/Data/*.json godot/data/
+      - name: Godot ${{ env.GODOT_VERSION }} + export templates
+        run: |
+          curl -sSL -o godot.zip https://github.com/godotengine/godot/releases/download/${GODOT_RELEASE}/Godot_v${GODOT_RELEASE}_linux.x86_64.zip
+          unzip -q godot.zip && mv Godot_v${GODOT_RELEASE}_linux.x86_64 godot-bin && chmod +x godot-bin
+          curl -sSL -o templates.tpz https://github.com/godotengine/godot/releases/download/${GODOT_RELEASE}/Godot_v${GODOT_RELEASE}_export_templates.tpz
+          mkdir -p ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable
+          unzip -q templates.tpz -d tpl && mv tpl/templates/* ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable/
+      - name: Import project (parse check)
+        run: |
+          ./godot-bin --headless --path godot --import 2>&1 | tee import.log || true
+          ! grep -E "SCRIPT ERROR|Parse Error|Failed to load script" import.log
+      - name: Gameplay smoke test (headless, GDExtension backend)
+        run: |
+          EF_EXPECT_BACKEND=gdextension timeout 300 ./godot-bin --headless --path godot -- --smoke 2>&1 | tee smoke.log
+          grep -q "SMOKE PASS" smoke.log
+          ! grep -E "SCRIPT ERROR" smoke.log
+      - name: Export Windows + Linux
+        run: |
+          mkdir -p out/win out/linux
+          ./godot-bin --headless --path godot --export-release "Windows Desktop" ../out/win/EarthFrontier.exe 2>&1 | tee export.log
+          ./godot-bin --headless --path godot --export-release "Linux" ../out/linux/EarthFrontier.x86_64 2>&1 | tee -a export.log
+          ls -la out/win out/linux
+          test -f out/win/EarthFrontier.exe
+      - name: Package
+        id: pkg
+        run: |
+          SHA=$(git rev-parse --short HEAD); DATE=$(date +%Y%m%d)
+          NAME=EarthFrontier_Windows_${DATE}_${SHA}
+          cp Docs/PLAYER_README.txt out/win/README.txt
+          (cd out/win && zip -qr ../../${NAME}.zip .)
+          (cd out/linux && zip -qr ../../EarthFrontier_Linux_${DATE}_${SHA}.zip .)
+          echo "name=${NAME}" >> $GITHUB_OUTPUT
+          echo "tag=build-${DATE}-${SHA}" >> $GITHUB_OUTPUT
+          ls -la *.zip
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: game-logs
+          path: |
+            import.log
+            smoke.log
+            export.log
+      - name: Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${{ steps.pkg.outputs.tag }}" *.zip --title "EARTH FRONTIER ${{ steps.pkg.outputs.name }}" \
+            --notes "Automatic build from main @ $(git rev-parse --short HEAD). Unzip, run EarthFrontier.exe. No server needed."
+
+  publish-core:
     needs: core
     runs-on: ubuntu-latest
     steps:
@@ -41,24 +116,18 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           path: artifacts
-      - name: Commit binaries to the dist branch
+      - name: Commit ef_server binaries to the dist branch
         shell: bash
         run: |
           set -e
           SHA=$(git rev-parse --short HEAD)
           git config user.name "earth-frontier-ci"
           git config user.email "ci@earthfrontier.local"
-          if git ls-remote --exit-code origin dist >/dev/null 2>&1; then
-            git fetch origin dist && git checkout dist
-          else
-            git checkout --orphan dist && git rm -rf -q . || true
-          fi
+          if git ls-remote --exit-code origin dist >/dev/null 2>&1; then git fetch origin dist && git checkout dist; else git checkout --orphan dist && git rm -rf -q . || true; fi
           mkdir -p windows linux macos
           cp artifacts/ef_server-windows-latest/* windows/ || true
           cp artifacts/ef_server-ubuntu-latest/* linux/ || true
           cp artifacts/ef_server-macos-latest/* macos/ || true
           chmod +x linux/* macos/* 2>/dev/null || true
-          printf "EARTH FRONTIER binaries built from main @ %s\n\nwindows/ef_server.exe  - run this, keep the window open, then Play in Godot\nwindows/ef_headless.exe - acceptance script (needs Content/Data/asterion_island_v1.json path)\n" "$SHA" > README.txt
-          git add -A
-          git commit -q -m "dist: binaries from $SHA" || echo "nothing to commit"
-          git push origin dist
+          printf "EARTH FRONTIER dev-server binaries from main @ %s (only needed when running the Godot project from the editor without the GDExtension)\n" "$SHA" > README.txt
+          git add -A && (git commit -q -m "dist: binaries from $SHA" || true) && git push origin dist

@@ -23,3 +23,12 @@ Content/**/*.uasset.tmp
 *.efsave
 *.efsave.bak
 *.efsave.tmp
+godot/data/
+godot/bin/*.so
+godot/bin/*.dll
+godot/bin/*.dylib
+godot/bin/efworldcore.gdextension
+godot/.godot/
+Source/EFGodot/godot-cpp/
+out/
+*.zip

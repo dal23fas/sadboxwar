@@ -13,8 +13,11 @@ core_dir = os.path.join("..", "EFWorldCore")
 env.Append(CPPPATH=["src/", os.path.join(core_dir, "Public")])
 sources = Glob("src/*.cpp") + Glob(os.path.join(core_dir, "Private", "*.cpp"))
 
-# godot-cpp already disables exceptions on most targets; the core compiles with -fno-exceptions -fno-rtti.
-if env["platform"] != "windows":
+# The core compiles with -fno-exceptions -fno-rtti on GCC/Clang. With MinGW (CI cross-build) link the C++ runtime
+# statically so the DLL has no libstdc++/libgcc dependency on the player's machine.
+if env["platform"] == "windows" and env.get("use_mingw", False):
+    env.Append(LINKFLAGS=["-static", "-static-libgcc", "-static-libstdc++"])
+if env["platform"] != "windows" or env.get("use_mingw", False):
     env.Append(CXXFLAGS=["-std=c++17"])
 
 suffix = env["suffix"]

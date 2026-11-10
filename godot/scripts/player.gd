@@ -78,6 +78,6 @@ func _update_prompt() -> void:
 	if veh != null:
 		lines.append("[X] Board %s" % veh.display_name)
 	if poi != "" and World.economy_node_at_poi(poi) != "":
-		lines.append("[1-4] Load item · [R] Deliver carried")
+		lines.append(game.cargo_prompt())
 	game.hud.set_prompt("\n".join(lines))
 	game.hud.set_stamina(stamina)

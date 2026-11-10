@@ -126,13 +126,19 @@ func _tcp_roundtrip(text: String) -> String:
 
 # ---------------------------------------------------------------- game flow
 func start_new_game(content_path: String, presets_path: String) -> bool:
-	var pr := call_api("load_presets", {"path": presets_path})
+	# Files are read here (FileAccess works inside exported packs) and passed as text to the core.
+	var presets_text := FileAccess.get_file_as_string(presets_path)
+	var content_text := FileAccess.get_file_as_string(content_path)
+	if content_text == "":
+		push_error("content file not readable: %s" % content_path)
+		return false
+	var pr := call_api("load_presets", {"presets_text": presets_text})
 	if pr.get("ok", false):
 		realism = pr["result"]
 		realism_updated.emit(realism)
 	else:
 		push_warning("realism presets not loaded: %s" % str(pr))
-	var r := call_api("start_new_game", {"content_path": content_path})
+	var r := call_api("start_new_game", {"content_text": content_text})
 	if not r.get("ok", false):
 		push_error("start_new_game failed: %s" % str(r))
 		return false
