@@ -32,8 +32,10 @@ ctest --test-dir build --output-on-failure
 
 ## 2. Παίξε το Phase 1 prototype στο Godot (χωρίς να χτίσεις το GDExtension)
 
+**Windows χωρίς Visual Studio:** κατέβασε το φορητό [w64devkit](https://github.com/skeeto/w64devkit/releases) (zip ~100 MB, χωρίς εγκατάσταση), ξεζίπαρέ το στο `C:\w64devkit` και τρέξε `build_windows.bat` — χτίζει και ξεκινά τον server. Εναλλακτικά, push στο GitHub: το `.github/workflows/build.yml` χτίζει `ef_server` για Windows/Linux/macOS ως artifact.
+
 ```bash
-./build/ef_server --port 7777 --save-dir ./Saved        # άφησέ το να τρέχει (Windows: build\Release\ef_server.exe)
+./build/ef_server --port 7777 --save-dir ./Saved        # Linux/macOS, άφησέ το να τρέχει
 ```
 Μετά: Godot 4.3+ → Import → `godot/project.godot` → Play (F5).  
 Το `World.gd` βλέπει ότι δεν υπάρχει GDExtension και συνδέεται στο `ef_server`. Αν ο server δεν τρέχει, η οθόνη γράφει «Core not available».

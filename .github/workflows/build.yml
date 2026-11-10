@@ -1,0 +1,23 @@
+# Builds the core, runs the tests and publishes ef_server binaries for Windows/Linux/macOS as artifacts.
+# Push this repo to GitHub and download the artifact from the Actions tab if you cannot compile locally.
+name: build
+on: [push, workflow_dispatch]
+jobs:
+  core:
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+      - run: cmake --build build --config Release
+      - run: ctest --test-dir build -C Release --output-on-failure
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ef_server-${{ matrix.os }}
+          path: |
+            build/ef_server*
+            build/Release/ef_server*
+            build/ef_headless*
+            build/Release/ef_headless*
