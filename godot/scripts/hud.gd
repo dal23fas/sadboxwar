@@ -16,6 +16,7 @@ var dialogue_text: Label
 var dialogue_hint: Label
 var debug_label: Label
 var fatal_label: Label
+var status_banner: Label
 var _toasts: Array[String] = []
 var _toast_timer := 0.0
 var _offered_mission: Dictionary = {}
@@ -38,7 +39,17 @@ func _ready() -> void:
 	dialogue_text = Label.new(); dialogue_text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; vb.add_child(dialogue_text)
 	dialogue_hint = Label.new(); dialogue_hint.modulate = Color(0.9, 0.8, 0.4); vb.add_child(dialogue_hint)
 	debug_label = _mk_label(root, Vector2(0, 12), 12); debug_label.anchor_left = 1.0; debug_label.anchor_right = 1.0; debug_label.offset_left = -620; debug_label.offset_right = -10; debug_label.visible = false
-	fatal_label = _mk_label(root, Vector2(0, 0), 24); fatal_label.set_anchors_preset(Control.PRESET_CENTER); fatal_label.modulate = Color(1, 0.4, 0.4); fatal_label.visible = false
+	fatal_label = _mk_label(root, Vector2(0, 0), 20)
+	fatal_label.set_anchors_preset(Control.PRESET_FULL_RECT)
+	fatal_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	fatal_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	fatal_label.modulate = Color(1, 0.5, 0.4)
+	fatal_label.visible = false
+	status_banner = _mk_label(root, Vector2(0, 0), 16)
+	status_banner.set_anchors_preset(Control.PRESET_CENTER_TOP)
+	status_banner.offset_top = 8
+	status_banner.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	status_banner.modulate = Color(0.8, 0.9, 1.0)
 	World.state_updated.connect(_on_state)
 
 func _mk_label(parent: Control, pos: Vector2, size: int) -> Label:
@@ -93,6 +104,13 @@ func toggle_debug() -> void: debug_label.visible = not debug_label.visible
 func show_fatal(text: String) -> void:
 	fatal_label.visible = true
 	fatal_label.text = text
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+
+func hide_fatal() -> void:
+	fatal_label.visible = false
+
+func show_status(text: String) -> void:
+	status_banner.text = text
 
 func toast(text: String) -> void:
 	_toasts.append(text)

@@ -18,12 +18,24 @@ var paused := false
 func _ready() -> void:
 	hud = EFHud.new(); add_child(hud)
 	realism_panel = EFRealismPanel.new(); hud.add_child(realism_panel)
-	World.connected.connect(_on_world_connected)
-	World.connection_failed.connect(func(reason): hud.show_fatal("Core not available: %s" % reason))
 	World.world_event.connect(_on_world_event)
 	World.state_updated.connect(_on_state_updated)
-	if World.backend != "":
-		_on_world_connected(World.backend)
+	hud.show_status("Connecting to EFWorldCore…")
+	var c: Dictionary = World.connect_backend()
+	if not c.get("ok", false):
+		hud.show_fatal("CORE NOT AVAILABLE — %s\n\nStart the dev server first, then press F5 / restart the scene:\n  Windows:  build\\Release\\ef_server.exe   (or build\\ef_server.exe)\n  Linux/macOS:  ./build/ef_server\n\nBuild it once with:  cmake -S . -B build && cmake --build build --config Release\nOr build the GDExtension (Source/EFGodot) so no server is needed." % c.get("reason", "?"))
+		print("[Game] core not available: ", c.get("reason", "?"))
+		set_process_unhandled_input(true)
+		return
+	_on_world_connected(c["backend"])
+
+func _retry_connect() -> void:
+	var c: Dictionary = World.connect_backend()
+	if c.get("ok", false):
+		hud.hide_fatal()
+		_on_world_connected(c["backend"])
+	else:
+		hud.toast("still no core: %s" % c.get("reason", "?"))
 
 func _on_world_connected(backend: String) -> void:
 	var root := ProjectSettings.globalize_path("res://")
@@ -35,6 +47,7 @@ func _on_world_connected(backend: String) -> void:
 	if not World.start_new_game(content_path, presets_path):
 		hud.show_fatal("start_new_game failed (see Output)")
 		return
+	hud.show_status("")
 	hud.toast("Core: %s · content %s" % [backend, World.content.get("content_id", "?")])
 	_build_environment()
 	_build_pois()
@@ -230,6 +243,10 @@ func _on_state_updated(state: Dictionary) -> void:
 
 # ---------------------------------------------------------------- global input
 func _unhandled_input(event: InputEvent) -> void:
+	if World.backend == "":
+		if event.is_action_pressed("quick_save"):
+			_retry_connect()
+		return
 	if event.is_action_pressed("quick_save"):
 		var r := World.save_game(SAVE_SLOT)
 		hud.toast("Saved" if r.get("ok", false) else "Save failed: %s" % r.get("message", ""))

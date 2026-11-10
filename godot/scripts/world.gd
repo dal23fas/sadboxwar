@@ -36,6 +36,11 @@ var _pose_provider: Callable = Callable()
 # ---------------------------------------------------------------- lifecycle
 func _ready() -> void:
 	InputSetup.ensure_default_actions()
+
+# Called by the main scene (so failures are visible on screen). Returns {"ok", "backend", "reason"}.
+func connect_backend() -> Dictionary:
+	if backend != "":
+		return {"ok": true, "backend": backend, "reason": ""}
 	if ClassDB.class_exists("EFWorld"):
 		_ext = ClassDB.instantiate("EFWorld")
 		backend = "gdextension"
@@ -43,22 +48,24 @@ func _ready() -> void:
 		_tcp = StreamPeerTCP.new()
 		var err := _tcp.connect_to_host(SERVER_HOST, SERVER_PORT)
 		if err != OK:
-			connection_failed.emit("connect_to_host failed: %d" % err)
-			return
+			return {"ok": false, "backend": "", "reason": "connect_to_host failed: %d" % err}
 		var waited := 0.0
 		while _tcp.get_status() == StreamPeerTCP.STATUS_CONNECTING and waited < 3.0:
 			_tcp.poll()
 			OS.delay_msec(20)
 			waited += 0.02
 		if _tcp.get_status() != StreamPeerTCP.STATUS_CONNECTED:
-			connection_failed.emit("ef_server not reachable on %s:%d — start build/ef_server first" % [SERVER_HOST, SERVER_PORT])
-			return
+			_tcp = null
+			return {"ok": false, "backend": "", "reason": "ef_server not reachable on %s:%d" % [SERVER_HOST, SERVER_PORT]}
 		backend = "tcp"
 	var ping := call_api("ping", {})
-	if ping.get("ok", false):
-		connected.emit(backend)
-	else:
-		connection_failed.emit("ping failed: %s" % str(ping))
+	if not ping.get("ok", false):
+		var b := backend
+		backend = ""
+		return {"ok": false, "backend": b, "reason": "ping failed: %s" % str(ping)}
+	print("[World] backend: %s · %s" % [backend, str(ping.get("result", {}))])
+	connected.emit(backend)
+	return {"ok": true, "backend": backend, "reason": ""}
 
 func _process(delta: float) -> void:
 	if not ready_world:
