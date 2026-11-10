@@ -36,6 +36,8 @@ const DEFAULTS := {
 	"cargo_4":           [KEY_4],
 	"cargo_deliver":     [KEY_R],
 	"refuel":            [KEY_T],
+	"overview":          [KEY_O],
+	"profile":           [KEY_P],
 	"repair":            [KEY_G],
 }
 

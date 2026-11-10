@@ -77,9 +77,9 @@ func _update_prompt() -> void:
 	var poi: String = game.nearest_poi_id(global_position, 40.0)
 	var lines := []
 	if npc != null:
-		lines.append("[E] Talk to %s" % npc.get_meta("npc_name"))
+		lines.append(EFText.t("talk_to") % npc.get_meta("npc_name"))
 	if veh != null:
-		lines.append("[X] Board %s" % veh.display_name)
+		lines.append(EFText.t("board") % veh.display_name)
 	if poi != "" and World.economy_node_at_poi(poi) != "":
 		lines.append(game.cargo_prompt())
 	if veh != null and poi != "" and World.poi(poi).get("kind", "") in ["depot", "airfield", "port", "town"]:

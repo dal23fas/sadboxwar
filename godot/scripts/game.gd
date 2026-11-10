@@ -44,6 +44,7 @@ func _ready() -> void:
 		hud.show_fatal("CORE NOT AVAILABLE — %s\n\nThis build needs the EFWorldCore library (GDExtension) or the dev server:\n  run build\\ef_server.exe (Windows) / ./build/ef_server, then press F5 here to retry.\nSee README.md." % c.get("reason", "?"))
 		return
 	World.load_presets_only()
+	EFText.set_language(str(World.realism.get("settings", {}).get("accessibility", {}).get("language", "en")))
 	if smoke:
 		_start_new_game()
 		var t := EFSmokeTest.new(self)
@@ -306,10 +307,10 @@ func cargo_prompt() -> String:
 	var items: Array = World.content.get("items", [])
 	for i in range(min(4, items.size())):
 		parts.append("[%d] %s" % [i + 1, items[i].get("label", items[i].get("id", ""))])
-	return "Load: " + " · ".join(parts) + "   [R] Deliver carried"
+	return EFText.t("load_prefix") + " · ".join(parts) + EFText.t("deliver")
 
 func service_prompt() -> String:
-	return "[T] Refuel · [G] Repair"
+	return EFText.t("service")
 
 func cargo_action(item_index: int, deliver: bool) -> void:
 	var at: Vector3 = possessed.global_position if possessed != null else player.global_position
@@ -407,6 +408,10 @@ func _unhandled_input(event: InputEvent) -> void:
 		panels.toggle_journal()
 	elif event.is_action_pressed("world_map"):
 		panels.toggle_map()
+	elif event.is_action_pressed("overview"):
+		panels.toggle_overview()
+	elif event.is_action_pressed("profile"):
+		panels.toggle_profile()
 	elif event.is_action_pressed("quick_save"):
 		_save(SAVE_SLOT)
 	elif event.is_action_pressed("quick_load"):

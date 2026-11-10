@@ -225,6 +225,7 @@ func realism_set_override(category: String, parameter: String, value: int) -> vo
 func realism_reset(category: String = "") -> void: _realism_call("realism_reset", {"category": category})
 func realism_set_combat(level: String) -> void: _realism_call("realism_set_combat", {"level": level})
 func realism_save() -> void: _realism_call("realism_save", {})
+func realism_set_accessibility(key: String, value) -> void: _realism_call("realism_set_accessibility", {"key": key, "value": value})
 
 func _realism_call(op: String, args: Dictionary) -> void:
 	var r := call_api(op, args)

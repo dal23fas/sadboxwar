@@ -158,6 +158,18 @@ func run() -> void:
 	check(game.get_tree().paused, "pause menu pauses")
 	game.panels.toggle_pause()
 	check(not game.get_tree().paused, "resume")
+	game.panels.toggle_overview()
+	check(game.panels.overview.visible and game.panels.overview_text.text.length() > 100, "operations overview renders")
+	game.panels.toggle_overview()
+	game.panels.toggle_profile()
+	check(game.panels.profile.visible and game.panels.profile_text.text.find("Reputation") >= 0, "profile renders")
+	game.panels.toggle_profile()
+	game.panels.toggle_controls()
+	check(game.panels.controls.visible and game.panels.controls_list.get_child_count() >= 20, "controls list renders")
+	game.panels.toggle_controls()
+	EFText.set_language("el")
+	check(EFText.t("resume") == "Συνέχεια", "Greek strings available")
+	EFText.set_language("en")
 
 	# --- realism settings do not touch the world
 	var snap_before: String = str(World.call_api("debug_summary", {}).get("result", {}).get("text", ""))

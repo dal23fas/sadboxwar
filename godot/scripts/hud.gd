@@ -75,9 +75,9 @@ func _process(delta: float) -> void:
 func _on_state(st: Dictionary) -> void:
 	var t: Dictionary = st.get("time", {})
 	var region: Dictionary = st.get("regions", [{}])[0] if not st.get("regions", []).is_empty() else {}
-	clock_label.text = "%s   %s   weather: %s" % [t.get("clock_text", ""), region.get("name", ""), region.get("weather", "")]
+	clock_label.text = "%s   %s   %s: %s" % [t.get("clock_text", ""), region.get("name", ""), EFText.t("weather"), region.get("weather", "")]
 	var po: Dictionary = st.get("possession", {})
-	status_label.text = "Credits %d · role %s · trust %d (%s) · stability %.2f" % [int(st.get("player", {}).get("credits", 0)), po.get("role", ""), int(region.get("local_trust", 0)), region.get("trust_band", ""), float(region.get("stability_normalized", 0))]
+	status_label.text = "%s %d · %s %s · %s %d (%s) · %s %.2f" % [EFText.t("credits"), int(st.get("player", {}).get("credits", 0)), EFText.t("role"), po.get("role", ""), EFText.t("trust"), int(region.get("local_trust", 0)), region.get("trust_band", ""), EFText.t("stability"), float(region.get("stability_normalized", 0))]
 	var lines := []
 	for m in st.get("missions", []):
 		if m.get("status", "") == "Active":
@@ -87,7 +87,7 @@ func _on_state(st: Dictionary) -> void:
 					if o["type"] == "Interact": desc = "Talk to %s" % _npc_name(o.get("target_id", ""))
 					else: desc = "Deliver %d x %s to %s (%d done)" % [int(o.get("quantity", 0)), o.get("item_id", ""), o.get("destination_node_id", ""), int(m.get("delivered_quantity", 0))]
 					lines.append("▶ %s: %s" % [m.get("title", ""), desc])
-	if lines.is_empty(): lines.append("No active mission — talk to an NPC or open the journal [J]")
+	if lines.is_empty(): lines.append(EFText.t("no_mission"))
 	mission_label.text = "\n".join(lines)
 	_objective_target = _current_objective_target(st)
 	var news := []
@@ -166,7 +166,7 @@ func show_dialogue(npc_name: String, text: String, offered_mission: Dictionary) 
 	_offered_mission = offered_mission
 	dialogue_name.text = npc_name
 	dialogue_text.text = text
-	dialogue_hint.text = ("[F] Accept mission: %s" % offered_mission.get("title", "")) if not offered_mission.is_empty() else "[E] Close"
+	dialogue_hint.text = (EFText.t("accept_mission") % offered_mission.get("title", "")) if not offered_mission.is_empty() else EFText.t("close")
 	dialogue_panel.visible = true
 
 func accept_offered_mission() -> void:

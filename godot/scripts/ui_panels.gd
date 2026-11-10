@@ -15,6 +15,13 @@ var map: PanelContainer
 var map_canvas: Control
 var slot_edit: LineEdit
 var _map_state: Dictionary = {}
+var overview: PanelContainer
+var overview_text: RichTextLabel
+var profile: PanelContainer
+var profile_text: RichTextLabel
+var controls: PanelContainer
+var controls_list: VBoxContainer
+var _rebinding := ""
 
 const SLOTS := ["slot1", "slot2", "slot3", "quick"]
 
@@ -23,33 +30,51 @@ func _ready() -> void:
 	# ---- pause menu
 	pause = _panel(-220, 220, -230, 230)
 	var vb := VBoxContainer.new(); vb.add_theme_constant_override("separation", 8); pause.add_child(vb)
-	var t := Label.new(); t.text = "PAUSED"; t.add_theme_font_size_override("font_size", 26); t.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER; vb.add_child(t)
-	_button(vb, "Resume", func(): toggle_pause())
+	var t := Label.new(); t.text = EFText.t("paused"); t.add_theme_font_size_override("font_size", 26); t.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER; vb.add_child(t)
+	_button(vb, EFText.t("resume"), func(): toggle_pause())
 	var hb := HBoxContainer.new(); vb.add_child(hb)
 	var sl := Label.new(); sl.text = "Slot:"; hb.add_child(sl)
 	slot_edit = LineEdit.new(); slot_edit.text = "slot1"; slot_edit.custom_minimum_size.x = 160; hb.add_child(slot_edit)
-	_button(vb, "Save to slot", func(): save_requested.emit(slot_edit.text.strip_edges()))
-	_button(vb, "Load slot", func(): load_requested.emit(slot_edit.text.strip_edges()))
+	_button(vb, EFText.t("save_to_slot"), func(): save_requested.emit(slot_edit.text.strip_edges()))
+	_button(vb, EFText.t("load_from_slot"), func(): load_requested.emit(slot_edit.text.strip_edges()))
 	var quick := HBoxContainer.new(); vb.add_child(quick)
 	for s in SLOTS:
 		var b := Button.new()
 		b.text = s
 		b.pressed.connect(_pick_slot.bind(s))
 		quick.add_child(b)
-	_button(vb, "Settings — Realism & Physics (F10)", func(): settings_requested.emit())
-	_button(vb, "Main menu", func(): main_menu_requested.emit())
-	_button(vb, "Quit game", func(): quit_requested.emit())
+	_button(vb, EFText.t("settings") + " (F10)", func(): settings_requested.emit())
+	_button(vb, EFText.t("controls").split("   ")[0], func(): toggle_controls())
+	_button(vb, EFText.t("profile").split("   ")[0], func(): toggle_profile())
+	_button(vb, EFText.t("main_menu"), func(): main_menu_requested.emit())
+	_button(vb, EFText.t("quit_game"), func(): quit_requested.emit())
 	# ---- journal
 	journal = _panel(-360, 360, -300, 300)
 	var jv := VBoxContainer.new(); journal.add_child(jv)
-	var jt := Label.new(); jt.text = "MISSION JOURNAL   (J to close)"; jt.add_theme_font_size_override("font_size", 20); jv.add_child(jt)
+	var jt := Label.new(); jt.text = EFText.t("journal"); jt.add_theme_font_size_override("font_size", 20); jv.add_child(jt)
 	var sc := ScrollContainer.new(); sc.custom_minimum_size = Vector2(700, 540); jv.add_child(sc)
 	journal_list = VBoxContainer.new(); journal_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL; sc.add_child(journal_list)
 	# ---- map
 	map = _panel(-440, 440, -320, 320)
 	var mv := VBoxContainer.new(); map.add_child(mv)
-	var mt := Label.new(); mt.text = "WORLD MAP — Asterion archipelago   (M to close)   green=operational  red=restricted"; mv.add_child(mt)
+	var mt := Label.new(); mt.text = EFText.t("map"); mv.add_child(mt)
 	map_canvas = Control.new(); map_canvas.custom_minimum_size = Vector2(860, 580); map_canvas.draw.connect(_draw_map); mv.add_child(map_canvas)
+	# ---- operations overview (§31, read-only)
+	overview = _panel(-420, 420, -300, 300)
+	var ov := VBoxContainer.new(); overview.add_child(ov)
+	var ot := Label.new(); ot.text = EFText.t("overview"); ot.add_theme_font_size_override("font_size", 20); ov.add_child(ot)
+	overview_text = RichTextLabel.new(); overview_text.custom_minimum_size = Vector2(820, 540); overview_text.bbcode_enabled = true; ov.add_child(overview_text)
+	# ---- character & career (§32.3)
+	profile = _panel(-320, 320, -240, 240)
+	var pv := VBoxContainer.new(); profile.add_child(pv)
+	var pt := Label.new(); pt.text = EFText.t("profile"); pt.add_theme_font_size_override("font_size", 20); pv.add_child(pt)
+	profile_text = RichTextLabel.new(); profile_text.custom_minimum_size = Vector2(620, 420); profile_text.bbcode_enabled = true; pv.add_child(profile_text)
+	# ---- controls (§34 rebinding)
+	controls = _panel(-300, 300, -300, 300)
+	var cv := VBoxContainer.new(); controls.add_child(cv)
+	var ct := Label.new(); ct.text = EFText.t("controls"); cv.add_child(ct)
+	var csc := ScrollContainer.new(); csc.custom_minimum_size = Vector2(580, 540); cv.add_child(csc)
+	controls_list = VBoxContainer.new(); controls_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL; csc.add_child(controls_list)
 	World.state_updated.connect(_on_state)
 
 func _panel(l: float, r: float, t: float, b: float) -> PanelContainer:
@@ -67,7 +92,7 @@ func _pick_slot(s: String) -> void:
 	slot_edit.text = s
 
 func any_open() -> bool:
-	return pause.visible or journal.visible or map.visible
+	return pause.visible or journal.visible or map.visible or overview.visible or profile.visible or controls.visible
 
 func _set_mouse() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE if any_open() else Input.MOUSE_MODE_CAPTURED
@@ -79,26 +104,143 @@ func toggle_pause() -> void:
 	_set_mouse()
 
 func close_all() -> void:
-	pause.visible = false; journal.visible = false; map.visible = false
+	pause.visible = false; journal.visible = false; map.visible = false; overview.visible = false; profile.visible = false; controls.visible = false
 	get_tree().paused = false
 	_set_mouse()
 
 func toggle_journal() -> void:
 	journal.visible = not journal.visible
-	map.visible = false
+	map.visible = false; overview.visible = false; profile.visible = false
 	if journal.visible:
 		_rebuild_journal(World.state)
 	_set_mouse()
 
 func toggle_map() -> void:
 	map.visible = not map.visible
-	journal.visible = false
+	journal.visible = false; overview.visible = false; profile.visible = false
 	if map.visible:
 		map_canvas.queue_redraw()
 	_set_mouse()
 
+func toggle_overview() -> void:
+	overview.visible = not overview.visible
+	journal.visible = false; map.visible = false; profile.visible = false
+	if overview.visible:
+		_rebuild_overview(World.state)
+	_set_mouse()
+
+func toggle_profile() -> void:
+	profile.visible = not profile.visible
+	pause.visible = false; journal.visible = false; map.visible = false; overview.visible = false
+	get_tree().paused = false
+	if profile.visible:
+		_rebuild_profile(World.state)
+	_set_mouse()
+
+func toggle_controls() -> void:
+	controls.visible = not controls.visible
+	pause.visible = false
+	get_tree().paused = false
+	if controls.visible:
+		_rebuild_controls()
+	_set_mouse()
+
+func _rebuild_overview(st: Dictionary) -> void:
+	var b := ""
+	b += "[b]%s[/b]   %s\n\n" % [st.get("time", {}).get("clock_text", ""), str(st.get("campaign", {}).get("act", "")).replace("_", " ")]
+	b += "[b]Regions[/b]\n"
+	for r in st.get("regions", []):
+		b += "  %s — control: %s · stability %.2f · trust %d (%s) · weather %s\n" % [r.get("name", ""), str(r.get("control_faction_id", "")).replace("faction_", ""), float(r.get("stability_normalized", 0)), int(r.get("local_trust", 0)), r.get("trust_band", ""), r.get("weather", "")]
+	b += "\n[b]Factions[/b]\n"
+	for f in st.get("factions", []):
+		b += "  %s: %d (%s)\n" % [f.get("name", ""), int(f.get("reputation", 0)), f.get("band", "")]
+	b += "\n[b]Infrastructure[/b]\n"
+	for i in st.get("infrastructure", []):
+		b += "  %s %s: [color=%s]%s[/color]\n" % [i.get("kind", ""), _poi_name(i.get("poi_id", "")), "lime" if i.get("status", "") == "operational" else "tomato", i.get("status", "")]
+	b += "\n[b]Supplies[/b]\n"
+	for n in st.get("economy_nodes", []):
+		var parts := []
+		for item in n.get("stocks", {}).keys():
+			var sh := float(n.get("shortage", {}).get(item, 0.0))
+			parts.append("%s %d%s" % [str(item).replace("_pack", "").replace("_crate", "").replace("_parts", ""), int(n["stocks"][item]), " [color=tomato]!![/color]" if sh >= 0.8 else (" [color=yellow]![/color]" if sh >= 0.4 else "")])
+		b += "  %s: %s\n" % [_poi_name(n.get("poi_id", "")), ", ".join(parts)]
+	b += "\n[b]Vehicles[/b]\n"
+	for v in st.get("vehicles", []):
+		b += "  %s — fuel %d%% · cond %d%% · cargo %d · %s\n" % [v.get("display_name", ""), int(float(v.get("fuel_normalized", 1)) * 100), int(float(v.get("condition_normalized", 1)) * 100), int(v.get("cargo_units", 0)), "seats: " + ", ".join(v.get("occupied_seats", {}).keys()) if not v.get("occupied_seats", {}).is_empty() else "parked"]
+	var active := 0; var avail := 0; var done := 0
+	for m in st.get("missions", []):
+		match m.get("status", ""):
+			"Active": active += 1
+			"Available": avail += 1
+			"Completed": done += 1
+	b += "\n[b]Missions[/b]  active %d · available %d · completed %d\n" % [active, avail, done]
+	b += "\n[b]Latest news[/b]\n"
+	var news: Array = st.get("news", [])
+	for i in range(max(0, news.size() - 6), news.size()):
+		b += "  • %s\n" % news[i].get("headline", "")
+	overview_text.text = b
+
+func _rebuild_profile(st: Dictionary) -> void:
+	var p: Dictionary = st.get("player", {})
+	var po: Dictionary = st.get("possession", {})
+	var b := "[b]%s[/b]\n" % p.get("entity_id", "operator")
+	b += "%s: %d\n" % [EFText.t("credits"), int(p.get("credits", 0))]
+	b += "Current role: %s%s\n" % [po.get("role", ""), (" (%s / %s)" % [po.get("vehicle_id", ""), po.get("seat_id", "")]) if po.get("mode", "") == "seated" else ""]
+	b += "Region: %s\n\n" % p.get("region_id", "")
+	b += "[b]Reputation[/b]\n"
+	for f in st.get("factions", []):
+		b += "  %s: %d (%s)\n" % [f.get("name", ""), int(f.get("reputation", 0)), f.get("band", "")]
+	b += "\n[b]Community trust[/b]\n"
+	for r in st.get("regions", []):
+		b += "  %s: %d (%s)\n" % [r.get("name", ""), int(r.get("local_trust", 0)), r.get("trust_band", "")]
+	b += "\n[b]Inventory[/b]\n"
+	var inv: Dictionary = p.get("inventory", {})
+	if inv.is_empty():
+		b += "  (empty)\n"
+	for k in inv.keys():
+		b += "  %s × %d\n" % [str(k).replace("_", " "), int(inv[k])]
+	var done := []
+	for m in st.get("missions", []):
+		if m.get("status", "") == "Completed":
+			done.append(m.get("title", ""))
+	b += "\n[b]Completed missions (%d)[/b]\n  %s\n" % [done.size(), ", ".join(done) if not done.is_empty() else "—"]
+	b += "\n[b]Qualifications[/b]: %s\n" % ("driver, pilot, captain, armored crew (prototype: all unlocked)")
+	profile_text.text = b
+
+func _rebuild_controls() -> void:
+	for c in controls_list.get_children():
+		c.queue_free()
+	for action in InputSetup.DEFAULTS.keys():
+		var hb := HBoxContainer.new(); controls_list.add_child(hb)
+		var l := Label.new(); l.text = action.replace("_", " "); l.custom_minimum_size.x = 260; hb.add_child(l)
+		var keys := []
+		for ev in InputMap.action_get_events(action):
+			if ev is InputEventKey:
+				keys.append(OS.get_keycode_string((ev as InputEventKey).physical_keycode))
+		var b := Button.new(); b.text = ", ".join(keys) if not keys.is_empty() else "(unbound)"
+		b.pressed.connect(_begin_rebind.bind(action, b))
+		hb.add_child(b)
+
+func _begin_rebind(action: String, button: Button) -> void:
+	_rebinding = action
+	button.text = "press a key…"
+
+func _input(event: InputEvent) -> void:
+	if _rebinding == "" or not (event is InputEventKey) or not event.pressed:
+		return
+	var key := event as InputEventKey
+	get_viewport().set_input_as_handled()
+	if key.keycode != KEY_ESCAPE:
+		InputMap.action_erase_events(_rebinding)
+		var ev := InputEventKey.new(); ev.physical_keycode = key.physical_keycode
+		InputMap.action_add_event(_rebinding, ev)
+	_rebinding = ""
+	_rebuild_controls()
+
 func _on_state(st: Dictionary) -> void:
 	_map_state = st
+	if overview.visible:
+		_rebuild_overview(st)
 	if journal.visible:
 		_rebuild_journal(st)
 	if map.visible:
@@ -141,7 +283,7 @@ func _rebuild_journal(st: Dictionary) -> void:
 		title.add_theme_font_size_override("font_size", 16); title.modulate = color; journal_list.add_child(title)
 		if status == "Available" and blocked == "" and str(m.get("offering_npc_id", "")) == "":
 			var accept := Button.new()
-			accept.text = "Accept from the board"
+			accept.text = EFText.t("accept_board")
 			accept.pressed.connect(_accept_board_mission.bind(str(m.get("mission_id", ""))))
 			journal_list.add_child(accept)
 		var info := Label.new()

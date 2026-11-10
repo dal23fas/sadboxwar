@@ -264,7 +264,7 @@ func _update_hud() -> void:
 		extra = "  alt %.0f m  throttle %d%%  %s" % [global_position.y, int(throttle_setting * 100), "STALL" if speed < float(handling.get("stall_speed_mps", 25)) and global_position.y > 1.0 else ""]
 	hud.set_vehicle_readout("%s · %s · %.0f km/h · fuel %d%% · cond %d%%%s" % [display_name, World.realism.get("resolved", {}).get(realism_category, {}).get("preset_label", "?"), abs(speed) * 3.6, int(fuel * 100), int(condition * 100), extra])
 	var poi: String = game.nearest_poi_id(global_position, 40.0)
-	var lines := ["[X] Exit · [C] Camera"]
+	var lines := [EFText.t("exit_camera")]
 	if vehicle_class == "rotorcraft":
 		lines.append("[W/S] Thrust · [A/D] Bank · [Space/Ctrl] Collective · [Q/E] Yaw")
 	elif vehicle_class == "submarine":
