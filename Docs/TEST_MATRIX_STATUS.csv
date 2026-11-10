@@ -23,3 +23,12 @@ UI-01,UI,Open map/economy/mission screen,Shows authoritative values,P1,NOT_RUN,R
 AV-01,Aviation,Complete transport objective,Payload transfer and reward happen once,P1,PASS_CORE,ef_headless steps 5-6 (domain); flight model NOT_RUN
 NAV-01,Naval,Complete harbor transport objective,Single economy update and proper disembark,P1,PASS_CORE,ef_headless step 7 (domain); boat physics NOT_RUN
 PERF-01,Performance,Active island scene at target settings,FPS and memory captured with actual hardware,P2,NOT_RUN,No target hardware specified; no renderer in this environment
+API-01,JsonApi,Slice through JSON surface + save/load + events_since,Same results as typed API,P0,PASS_CORE,Tests/test_json_api.cpp
+NET-01,ef_server,TCP JSON-lines client flow incl. reconnect,Server keeps world across reconnects,P1,PASS_CORE,Tools/ef_server/test_client.py
+RLM-T10,Realism,Global preset + category override + slider,Correct resolution per category,P0,PASS_CORE,Tests/test_realism.cpp
+RLM-T16,Realism,Reset category/all,Exactly preset values; settings round-trip; corrupt rejected,P0,PASS_CORE,Tests/test_realism.cpp
+RLM-INV,Realism,Same mission under ARCADE vs REALISTIC,Identical world snapshot,P0,PASS_CORE,Tests/test_realism.cpp
+SUB-01,Submarine,Board submarine under storm/clear; Harbor Link eligibility,port_restricted then ok; captain role,P1,PASS_CORE,Tests/test_realism.cpp
+VIEW-01,Tools,HTML viewer renders a real save,Sections rendered; 0 JS errors; screenshot,P2,PASS,Tools/ef_viewer/check_viewer.mjs
+GD-01,Godot,Project opens and plays Phase 1 flow via ef_server,start→talk→accept→camera→save→load,P0,NOT_RUN,No Godot editor in this environment
+

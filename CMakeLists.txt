@@ -21,10 +21,17 @@ endif()
 add_executable(ef_headless Tools/ef_headless/main.cpp)
 target_link_libraries(ef_headless PRIVATE EFWorldCore)
 
+# ---- dev bridge for Godot (TCP JSON lines) ----
+add_executable(ef_server Tools/ef_server/main.cpp)
+target_link_libraries(ef_server PRIVATE EFWorldCore)
+if(WIN32)
+  target_link_libraries(ef_server PRIVATE ws2_32)
+endif()
+
 # ---- tests ----
 enable_testing()
 set(EF_CONTENT_PATH "${CMAKE_CURRENT_SOURCE_DIR}/Content/Data/asterion_island_v1.json")
-foreach(t test_json test_events test_world_loop test_save_load test_simulation)
+foreach(t test_json test_events test_world_loop test_save_load test_simulation test_json_api test_realism)
   add_executable(${t} Tests/${t}.cpp)
   target_link_libraries(${t} PRIVATE EFWorldCore)
   target_include_directories(${t} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/Tests)

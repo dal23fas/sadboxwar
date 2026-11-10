@@ -69,7 +69,7 @@ const InfrastructureState* WorldState::infrastructureNear(const Vec3& p, const s
 }
 
 std::string WorldState::requiredInfrastructureKind(VehicleClass c) const {
-    switch (c) { case VehicleClass::Naval: return "port"; case VehicleClass::Rotorcraft: case VehicleClass::FixedWing: return "airfield"; default: return ""; }
+    switch (c) { case VehicleClass::Naval: case VehicleClass::Submarine: return "port"; case VehicleClass::Rotorcraft: case VehicleClass::FixedWing: return "airfield"; default: return ""; }
 }
 
 // A transport mode is blocked in a region when every infrastructure of the required kind there
@@ -120,7 +120,7 @@ static std::string roleForSeat(const VehicleDefinition& def, const std::string& 
         case VehicleClass::Ground: return "driver";
         case VehicleClass::Armored: return "armored_crew";
         case VehicleClass::Rotorcraft: case VehicleClass::FixedWing: return "pilot";
-        case VehicleClass::Naval: return "captain";
+        case VehicleClass::Naval: case VehicleClass::Submarine: return "captain";
         default: return "operator";
     }
 }

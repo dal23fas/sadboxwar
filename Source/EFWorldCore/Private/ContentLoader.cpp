@@ -43,6 +43,8 @@ Status loadContentFromJson(const Json& j, WorldContent& c) {
         d.control_profile = dj.get("control_profile").asString(); d.vehicle_class = vehicleClassFromName(dj.get("vehicle_class").asString());
         d.cargo_capacity_game_units = static_cast<int>(dj.get("cargo_capacity_game_units").asInt());
         if (d.vehicle_class == VehicleClass::Unknown) return Status::Fail("content_invalid", "vehicle definition " + d.definition_id + " has unknown class");
+        d.realism_category = dj.get("realism_category").asString().empty() ? defaultRealismCategory(d.vehicle_class) : dj.get("realism_category").asString();
+        d.handling = dj.get("handling").isObject() ? dj.get("handling") : Json::object();
         for (const auto& sj : dj.get("seats").asArray()) {
             SeatDef s;
             if (sj.isString()) { s.seat_id = sj.asString(); s.is_control_seat = (s.seat_id == "driver" || s.seat_id == "pilot" || s.seat_id == "captain"); }

@@ -1,0 +1,69 @@
+{
+  "presets_id": "realism_presets_v1",
+  "schema_version": 1,
+  "notice": "Gameplay-abstract handling assist values (0-100). Fictional game balance; not real vehicle data.",
+  "preset_names": ["ARCADE", "BALANCED", "REALISTIC"],
+  "default_global_preset": "BALANCED",
+  "parameter_descriptions": {
+    "steering_assist":          {"el": "Βοήθεια διεύθυνσης/ελέγχου", "en": "Steering / control assistance"},
+    "auto_stabilization":       {"el": "Αυτόματη σταθεροποίηση", "en": "Auto-stabilization"},
+    "inertia_influence":        {"el": "Επίδραση αδράνειας", "en": "Inertia influence"},
+    "gravity_slope_influence":  {"el": "Επίδραση βαρύτητας/κλίσης", "en": "Gravity / slope influence"},
+    "weather_sensitivity":      {"el": "Ευαισθησία στον καιρό", "en": "Weather sensitivity"},
+    "terrain_sensitivity":      {"el": "Ευαισθησία εδάφους/επιφάνειας", "en": "Terrain / surface sensitivity"},
+    "collision_forgiveness":    {"el": "Ανοχή συγκρούσεων", "en": "Collision forgiveness"},
+    "mechanical_complexity":    {"el": "Μηχανική πολυπλοκότητα", "en": "Mechanical complexity"},
+    "damage_severity":          {"el": "Σοβαρότητα ζημιών (μη γραφική)", "en": "Vehicle damage severity (non-graphic)"},
+    "navigation_landing_assist":{"el": "Βοήθεια πλοήγησης/προσγείωσης", "en": "Navigation / landing assistance"},
+    "camera_stabilization":     {"el": "Σταθεροποίηση κάμερας", "en": "Camera stabilization"},
+    "fatigue_rate":             {"el": "Ρυθμός κόπωσης χαρακτήρα", "en": "Character fatigue rate"},
+    "aim_assist":               {"el": "Βοήθεια στόχευσης (accessibility)", "en": "Aim assist (accessibility)"},
+    "depth_hold_assist":        {"el": "Αυτόματη διατήρηση βάθους", "en": "Automatic depth hold"},
+    "current_influence":        {"el": "Επίδραση ρευμάτων", "en": "Sea current influence"},
+    "wave_influence":           {"el": "Επίδραση κυματισμού", "en": "Wave influence"}
+  },
+  "categories": {
+    "infantry": {
+      "ARCADE":    {"steering_assist": 80, "auto_stabilization": 80, "inertia_influence": 15, "gravity_slope_influence": 30, "weather_sensitivity": 20, "terrain_sensitivity": 20, "collision_forgiveness": 80, "mechanical_complexity": 10, "damage_severity": 30, "navigation_landing_assist": 90, "camera_stabilization": 80, "fatigue_rate": 20, "aim_assist": 70},
+      "BALANCED":  {"steering_assist": 50, "auto_stabilization": 50, "inertia_influence": 45, "gravity_slope_influence": 50, "weather_sensitivity": 50, "terrain_sensitivity": 50, "collision_forgiveness": 50, "mechanical_complexity": 40, "damage_severity": 50, "navigation_landing_assist": 60, "camera_stabilization": 50, "fatigue_rate": 50, "aim_assist": 30},
+      "REALISTIC": {"steering_assist": 15, "auto_stabilization": 20, "inertia_influence": 80, "gravity_slope_influence": 80, "weather_sensitivity": 80, "terrain_sensitivity": 80, "collision_forgiveness": 20, "mechanical_complexity": 70, "damage_severity": 75, "navigation_landing_assist": 20, "camera_stabilization": 25, "fatigue_rate": 80, "aim_assist": 0}
+    },
+    "wheeled": {
+      "ARCADE":    {"steering_assist": 85, "auto_stabilization": 85, "inertia_influence": 20, "gravity_slope_influence": 30, "weather_sensitivity": 20, "terrain_sensitivity": 20, "collision_forgiveness": 85, "mechanical_complexity": 10, "damage_severity": 30, "navigation_landing_assist": 80, "camera_stabilization": 80},
+      "BALANCED":  {"steering_assist": 55, "auto_stabilization": 50, "inertia_influence": 50, "gravity_slope_influence": 50, "weather_sensitivity": 50, "terrain_sensitivity": 50, "collision_forgiveness": 50, "mechanical_complexity": 40, "damage_severity": 50, "navigation_landing_assist": 50, "camera_stabilization": 50},
+      "REALISTIC": {"steering_assist": 15, "auto_stabilization": 10, "inertia_influence": 85, "gravity_slope_influence": 85, "weather_sensitivity": 80, "terrain_sensitivity": 85, "collision_forgiveness": 20, "mechanical_complexity": 70, "damage_severity": 80, "navigation_landing_assist": 15, "camera_stabilization": 20}
+    },
+    "tracked": {
+      "ARCADE":    {"steering_assist": 85, "auto_stabilization": 80, "inertia_influence": 35, "gravity_slope_influence": 30, "weather_sensitivity": 20, "terrain_sensitivity": 25, "collision_forgiveness": 85, "mechanical_complexity": 10, "damage_severity": 30, "navigation_landing_assist": 70, "camera_stabilization": 85},
+      "BALANCED":  {"steering_assist": 50, "auto_stabilization": 50, "inertia_influence": 65, "gravity_slope_influence": 55, "weather_sensitivity": 50, "terrain_sensitivity": 55, "collision_forgiveness": 50, "mechanical_complexity": 45, "damage_severity": 50, "navigation_landing_assist": 50, "camera_stabilization": 55},
+      "REALISTIC": {"steering_assist": 10, "auto_stabilization": 10, "inertia_influence": 95, "gravity_slope_influence": 85, "weather_sensitivity": 80, "terrain_sensitivity": 90, "collision_forgiveness": 15, "mechanical_complexity": 80, "damage_severity": 80, "navigation_landing_assist": 10, "camera_stabilization": 25}
+    },
+    "helicopter": {
+      "ARCADE":    {"steering_assist": 85, "auto_stabilization": 95, "inertia_influence": 20, "gravity_slope_influence": 25, "weather_sensitivity": 15, "terrain_sensitivity": 10, "collision_forgiveness": 80, "mechanical_complexity": 10, "damage_severity": 30, "navigation_landing_assist": 95, "camera_stabilization": 85},
+      "BALANCED":  {"steering_assist": 55, "auto_stabilization": 60, "inertia_influence": 50, "gravity_slope_influence": 50, "weather_sensitivity": 50, "terrain_sensitivity": 40, "collision_forgiveness": 50, "mechanical_complexity": 40, "damage_severity": 50, "navigation_landing_assist": 60, "camera_stabilization": 55},
+      "REALISTIC": {"steering_assist": 10, "auto_stabilization": 15, "inertia_influence": 85, "gravity_slope_influence": 85, "weather_sensitivity": 85, "terrain_sensitivity": 70, "collision_forgiveness": 15, "mechanical_complexity": 80, "damage_severity": 80, "navigation_landing_assist": 15, "camera_stabilization": 20}
+    },
+    "fixed_wing": {
+      "ARCADE":    {"steering_assist": 85, "auto_stabilization": 90, "inertia_influence": 25, "gravity_slope_influence": 30, "weather_sensitivity": 15, "terrain_sensitivity": 10, "collision_forgiveness": 80, "mechanical_complexity": 10, "damage_severity": 30, "navigation_landing_assist": 95, "camera_stabilization": 85},
+      "BALANCED":  {"steering_assist": 50, "auto_stabilization": 55, "inertia_influence": 55, "gravity_slope_influence": 50, "weather_sensitivity": 50, "terrain_sensitivity": 40, "collision_forgiveness": 50, "mechanical_complexity": 45, "damage_severity": 50, "navigation_landing_assist": 60, "camera_stabilization": 55},
+      "REALISTIC": {"steering_assist": 10, "auto_stabilization": 10, "inertia_influence": 90, "gravity_slope_influence": 85, "weather_sensitivity": 85, "terrain_sensitivity": 60, "collision_forgiveness": 10, "mechanical_complexity": 85, "damage_severity": 85, "navigation_landing_assist": 10, "camera_stabilization": 20}
+    },
+    "surface_vessel": {
+      "ARCADE":    {"steering_assist": 85, "auto_stabilization": 85, "inertia_influence": 30, "gravity_slope_influence": 20, "weather_sensitivity": 20, "terrain_sensitivity": 10, "collision_forgiveness": 85, "mechanical_complexity": 10, "damage_severity": 30, "navigation_landing_assist": 90, "camera_stabilization": 85, "wave_influence": 20, "current_influence": 15},
+      "BALANCED":  {"steering_assist": 50, "auto_stabilization": 50, "inertia_influence": 65, "gravity_slope_influence": 40, "weather_sensitivity": 50, "terrain_sensitivity": 30, "collision_forgiveness": 50, "mechanical_complexity": 40, "damage_severity": 50, "navigation_landing_assist": 55, "camera_stabilization": 55, "wave_influence": 50, "current_influence": 45},
+      "REALISTIC": {"steering_assist": 10, "auto_stabilization": 10, "inertia_influence": 95, "gravity_slope_influence": 60, "weather_sensitivity": 85, "terrain_sensitivity": 50, "collision_forgiveness": 15, "mechanical_complexity": 75, "damage_severity": 80, "navigation_landing_assist": 10, "camera_stabilization": 20, "wave_influence": 90, "current_influence": 85}
+    },
+    "submarine": {
+      "ARCADE":    {"steering_assist": 85, "auto_stabilization": 90, "inertia_influence": 30, "gravity_slope_influence": 20, "weather_sensitivity": 10, "terrain_sensitivity": 20, "collision_forgiveness": 85, "mechanical_complexity": 10, "damage_severity": 30, "navigation_landing_assist": 90, "camera_stabilization": 85, "depth_hold_assist": 95, "current_influence": 15},
+      "BALANCED":  {"steering_assist": 50, "auto_stabilization": 55, "inertia_influence": 65, "gravity_slope_influence": 40, "weather_sensitivity": 30, "terrain_sensitivity": 50, "collision_forgiveness": 50, "mechanical_complexity": 45, "damage_severity": 50, "navigation_landing_assist": 55, "camera_stabilization": 55, "depth_hold_assist": 60, "current_influence": 45},
+      "REALISTIC": {"steering_assist": 10, "auto_stabilization": 10, "inertia_influence": 95, "gravity_slope_influence": 60, "weather_sensitivity": 50, "terrain_sensitivity": 80, "collision_forgiveness": 15, "mechanical_complexity": 80, "damage_severity": 80, "navigation_landing_assist": 10, "camera_stabilization": 20, "depth_hold_assist": 10, "current_influence": 90}
+    },
+    "environment": {
+      "ARCADE":    {"weather_sensitivity": 20, "wave_influence": 20, "current_influence": 15, "terrain_sensitivity": 20, "gravity_slope_influence": 30},
+      "BALANCED":  {"weather_sensitivity": 50, "wave_influence": 50, "current_influence": 45, "terrain_sensitivity": 50, "gravity_slope_influence": 50},
+      "REALISTIC": {"weather_sensitivity": 85, "wave_influence": 90, "current_influence": 85, "terrain_sensitivity": 85, "gravity_slope_influence": 85}
+    }
+  },
+  "combat_challenge_levels": ["EASY", "NORMAL", "HARD", "CUSTOM"],
+  "hud_assist_levels": ["MINIMAL", "STANDARD", "FULL"]
+}

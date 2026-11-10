@@ -1,5 +1,24 @@
 # CHANGELOG
 
+## 0.0.2-phase1-godot — 2026-11-10
+
+### Changed
+- **Engine target: Godot 4.3+** (TDR-002). Unreal glue removed from the branch (kept in history).
+- `checkTransportMode` is region-based (any operational port/airfield in the mission region), not proximity-based.
+
+### Added
+- `JsonApi`: one request/response surface for every host (GDExtension, ef_server, tools). Ops for world, save/load, realism.
+- `Tools/ef_server`: TCP JSON-lines bridge (localhost) so the Godot project runs without building the GDExtension; Python smoke test.
+- `RealismProfileManager` + `Content/Data/realism_presets_v1.json`: 8 categories × ARCADE/BALANCED/REALISTIC, category overrides,
+  custom sliders, exact reset, settings document separate from world saves. Tests T10, T16, settings round-trip, §14 invariant.
+- `VehicleClass::Submarine`; research submarine, 11 vehicle definitions with base `handling` data, Tidewatch Reef POI.
+- Godot project (`godot/`): World bridge autoload, input map setup, bootstrap scene builder, FPS/TPS player, NPC dialogue + mission
+  accept, vehicle enter/exit with one kinematic controller for wheeled/tracked/helicopter/boat/submarine, cargo load/deliver,
+  HUD, quick save/load, debug overlay, Realism & Physics settings panel. UNVERIFIED (no editor here).
+- GDExtension wrapper `Source/EFGodot` (EFWorld.request) + SConstruct + .gdextension template. UNVERIFIED.
+- `Tools/ef_viewer`: HTML world-state viewer for `.efsave` files, verified headlessly with a screenshot.
+- Docs: TDR-002, SUPPLEMENT_REALISM_SUBMARINES (deliverables A–Z), updated status/test matrix.
+
 ## 0.0.1-phase0 — 2026-11-10
 
 ### Added

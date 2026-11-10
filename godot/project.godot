@@ -1,0 +1,29 @@
+; Engine configuration file.
+; Godot 4.3+ project for EARTH FRONTIER. Presentation layer only; the authoritative world state lives in EFWorldCore
+; (GDExtension or ef_server). See Docs/TDR-002-godot-decision.md.
+
+config_version=5
+
+[application]
+
+config/name="EARTH FRONTIER - DYNAMIC OPERATIONS"
+run/main_scene="res://scenes/main.tscn"
+config/features=PackedStringArray("4.3", "Forward Plus")
+config/icon="res://icon.svg"
+
+[autoload]
+
+World="*res://scripts/world.gd"
+
+[display]
+
+window/size/viewport_width=1280
+window/size/viewport_height=720
+
+[physics]
+
+common/physics_ticks_per_second=60
+
+[rendering]
+
+renderer/rendering_method="forward_plus"

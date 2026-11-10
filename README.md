@@ -1,52 +1,65 @@
 # EARTH FRONTIER — DYNAMIC OPERATIONS
 
 Single-player, persistent-world, combined-arms action/simulation σε φανταστική σύγχρονη Γη.
-**Ένα παιχνίδι, ένα world state.** Προδιαγραφές: `Docs/spec/` (το πλήρες prompt pack). Κατάσταση: `PROJECT_STATUS.md`.
+**Ένα παιχνίδι, ένα world state.** Προδιαγραφές: `Docs/spec/` + `Docs/SUPPLEMENT_REALISM_SUBMARINES.md`. Κατάσταση: `PROJECT_STATUS.md`.
+
+**Engine: Godot 4.3+** (TDR-002). Ο authoritative πυρήνας είναι engine-neutral C++ (`EFWorldCore`) και κουμπώνει στο Godot είτε ως GDExtension είτε μέσω του dev server `ef_server`.
 
 ## Δομή
 
 ```
 EarthFrontier/
-├── EarthFrontier.uproject            UE 5.4 project (UNVERIFIED εδώ — βλ. TDR-001)
-├── Config/                           DefaultEngine/Game/Input (UNVERIFIED)
-├── Content/Data/asterion_island_v1.json   Content package (definitions + initial world)
-├── Source/
-│   ├── EFWorldCore/                  Engine-neutral authoritative core (C++17, no exceptions/RTTI) — TESTED
-│   │   ├── Public/EFWorldCore/       Json, Rng, Events, Domain, Commands, WorldState, ContentLoader, SaveService
-│   │   ├── Private/                  implementation (WorldState, Reactions, Simulation, Snapshot, ...)
-│   │   └── EFWorldCore.Build.cs      UE module rules for the same sources (UNVERIFIED)
-│   └── EarthFrontier/                UE game module: UEFWorldSubsystem wrapper (UNVERIFIED)
-├── Tests/                            CTest suite (5 executables, 19 cases) — PASSING
-├── Tools/ef_headless/                Vertical-slice acceptance script, data form — PASSING
-├── Docs/                             TDR-001, DATA_CONTRACTS, acceptance log, spec/
-└── CMakeLists.txt                    builds core + tests + tool outside the engine
+├── Source/EFWorldCore/          Authoritative core (C++17, no exceptions/RTTI) — TESTED (7 suites / 29 cases)
+├── Source/EFGodot/              GDExtension wrapper + SConstruct — UNVERIFIED εδώ (χρειάζεται godot-cpp)
+├── godot/                       Godot 4 project (presentation): scripts/, scenes/main.tscn, bin/*.gdextension.template
+├── Content/Data/                asterion_island_v1.json (κόσμος) · realism_presets_v1.json (presets)
+├── Tools/ef_headless/           Acceptance script 10 βημάτων χωρίς 3D — PASSING
+├── Tools/ef_server/             TCP JSON-lines bridge για το Godot + Python smoke test — PASSING
+├── Tools/ef_viewer/             HTML world-state viewer (.efsave) + headless Chromium check — PASSING
+├── Tests/                       CTest suites
+├── Docs/                        TDR-001/002, DATA_CONTRACTS, SUPPLEMENT, TEST_MATRIX_STATUS, logs, screenshots, spec/
+└── CMakeLists.txt
 ```
 
-## Build & test του core (οποιοδήποτε Linux/macOS/Windows με CMake + C++17)
+## 1. Build & test του core (Linux/macOS/Windows, CMake + C++17)
 
 ```bash
-cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build -j
 ctest --test-dir build --output-on-failure
-./build/ef_headless Content/Data/asterion_island_v1.json ./build/Saved
+./build/ef_headless Content/Data/asterion_island_v1.json ./build/Saved     # 10/10 acceptance steps
 ```
 
-Το `ef_headless` εκτελεί τα 10 βήματα του acceptance script (Roadmap §10) χωρίς 3D και τυπώνει journal, news και debug summary. Exit code 0 = όλα τα βήματα παρήγαγαν το αναμενόμενο persistent outcome.
+## 2. Παίξε το Phase 1 prototype στο Godot (χωρίς να χτίσεις το GDExtension)
 
-## Άνοιγμα στο Unreal Engine 5 (δεν έχει επαληθευτεί σε αυτό το περιβάλλον)
+```bash
+./build/ef_server --port 7777 --save-dir ./Saved        # άφησέ το να τρέχει (Windows: build\Release\ef_server.exe)
+```
+Μετά: Godot 4.3+ → Import → `godot/project.godot` → Play (F5).  
+Το `World.gd` βλέπει ότι δεν υπάρχει GDExtension και συνδέεται στο `ef_server`. Αν ο server δεν τρέχει, η οθόνη γράφει «Core not available».
 
-1. Εγκατέστησε UE 5.4+ και Visual Studio 2022 (Desktop C++ workload) ή clang toolchain.
-2. Δεξί κλικ `EarthFrontier.uproject` → *Generate Visual Studio project files*.
-3. Build target `EarthFrontierEditor` (Development Editor). Αναμενόμενο: τα modules `EFWorldCore` και `EarthFrontier` μεταγλωττίζονται.
-4. Άνοιξε το project. Στο Output Log αναμένεται: `[EF] WorldCore ready (save schema v1, event schema v1)`.
-5. Σε οποιοδήποτε Blueprint: `Get Game Instance Subsystem → EFWorldSubsystem → StartNewGame`, μετά `GetDebugSummary` → Print String.
+Χειρισμός: WASD κίνηση · Shift sprint · Space jump · ποντίκι look · **C** FPS/TPS · **E** μιλάς σε NPC · **F** αποδοχή αποστολής · **X** επιβίβαση/αποβίβαση (κοντά σε όχημα) · **1–4** φόρτωση 1 τεμαχίου (water/food/medical/parts) κοντά σε facility · **R** παράδοση όσων κουβαλάς · **W/S A/D** όχημα · **Space/Ctrl** collective (ελικόπτερο) / surface-dive (υποβρύχιο) · **Q/E** yaw · **F5/F9** save/load · **F3** debug overlay (authoritative state) · **F10** Realism & Physics settings · **Esc** mouse.
 
-Αν το βήμα 3 ή 4 αποτύχει, στείλε το compile/Output log — αυτό είναι το gate της TDR-001 §5.
+Phase 1 acceptance (Roadmap §4): start → E στον Mayor → F αποδοχή → C εναλλαγή κάμερας → F5 → F9 → ο παίκτης, η αποστολή και το ρολόι επανέρχονται από το save.
 
-## Κανόνες συνεισφοράς (από το spec)
+## 3. Χτίσε το GDExtension (production path)
 
-- Καμία μετάλλαξη world state εκτός `applyEvent` (reducer). UI/Actors υποβάλλουν commands και διαβάζουν projections.
-- Κάθε νέο event type: enum + name table (`Events.cpp`) + reducer + (αν χρειάζεται) reaction + test.
-- Ποτέ hardware input codes μέσα σε vehicle/pawn κώδικα (TDD §10).
-- Νέο περιεχόμενο = δεδομένα στο content JSON, όχι νέος κώδικας.
-- Κάθε milestone τελειώνει με ενημέρωση `PROJECT_STATUS.md`, `CHANGELOG.md`, `Docs/TEST_MATRIX_STATUS.csv`.
+```bash
+cd Source/EFGodot
+git clone -b 4.3 https://github.com/godotengine/godot-cpp      # ίδια minor έκδοση με το Godot σου
+scons platform=linux target=template_debug                      # ή windows / macos
+cd ../../godot/bin && mv efworldcore.gdextension.template efworldcore.gdextension
+```
+Στο Output του Godot το `World.gd` θα αναφέρει backend `gdextension`. Ο `ef_server` δεν χρειάζεται πια.
+
+## 4. Δες ένα save
+
+Άνοιξε `Tools/ef_viewer/index.html` σε browser και επίλεξε ένα `.efsave` (+ προαιρετικά το content JSON). Headless έλεγχος: `node Tools/ef_viewer/check_viewer.mjs <save> <content> out.png` (χρειάζεται playwright).
+
+## Κανόνες συνεισφοράς
+
+- Καμία μετάλλαξη world state εκτός `applyEvent` (reducer). Godot scripts υποβάλλουν commands μέσω `World` και διαβάζουν projections.
+- Realism presets αλλάζουν ΜΟΝΟ χειρισμό/feedback. Κανένας κανόνας αποστολής/οικονομίας δεν διαβάζει presets (test το επιβάλλει).
+- Hardware input codes μόνο στο `godot/scripts/input_setup.gd`. Scripts χρησιμοποιούν action names.
+- Νέο περιεχόμενο = JSON, όχι κώδικας. Νέο event type = enum + name table + reducer + test.
+- Κάθε milestone: `PROJECT_STATUS.md`, `CHANGELOG.md`, `Docs/TEST_MATRIX_STATUS.csv`.

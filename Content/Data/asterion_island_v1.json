@@ -18,134 +18,853 @@
       "population_index": 45,
       "initial_local_trust": 0,
       "spawn_poi_id": "poi_port_lyria",
-      "economy_node_ids": ["economy_port_lyria", "economy_beacon_clinic", "economy_pinewatch"],
-      "poi_ids": ["poi_port_lyria", "poi_harbor_west", "poi_windfield", "poi_beacon_clinic", "poi_depot_south", "poi_pinewatch"]
+      "economy_node_ids": [
+        "economy_port_lyria",
+        "economy_beacon_clinic",
+        "economy_pinewatch"
+      ],
+      "poi_ids": [
+        "poi_port_lyria",
+        "poi_harbor_west",
+        "poi_windfield",
+        "poi_beacon_clinic",
+        "poi_depot_south",
+        "poi_pinewatch",
+        "poi_reef_survey"
+      ]
     }
   ],
   "factions": [
-    {"id": "faction_commonwealth", "name": "Asterion Commonwealth", "initial_relation_to_player": 0},
-    {"id": "faction_northshore", "name": "Northshore Pact", "initial_relation_to_player": 0},
-    {"id": "faction_relief", "name": "Relief & Mediation Network", "initial_relation_to_player": 15}
+    {
+      "id": "faction_commonwealth",
+      "name": "Asterion Commonwealth",
+      "initial_relation_to_player": 0
+    },
+    {
+      "id": "faction_northshore",
+      "name": "Northshore Pact",
+      "initial_relation_to_player": 0
+    },
+    {
+      "id": "faction_relief",
+      "name": "Relief & Mediation Network",
+      "initial_relation_to_player": 15
+    }
   ],
   "items": [
-    {"id": "water_pack", "label": "Water Pack", "category": "civilian_supplies", "base_price_credits": 12, "mass_game_units": 2},
-    {"id": "food_crate", "label": "Food Crate", "category": "civilian_supplies", "base_price_credits": 20, "mass_game_units": 3},
-    {"id": "medical_pack", "label": "Medical Pack", "category": "civilian_supplies", "base_price_credits": 30, "mass_game_units": 2},
-    {"id": "spare_parts", "label": "Spare Parts", "category": "maintenance", "base_price_credits": 18, "mass_game_units": 4}
+    {
+      "id": "water_pack",
+      "label": "Water Pack",
+      "category": "civilian_supplies",
+      "base_price_credits": 12,
+      "mass_game_units": 2
+    },
+    {
+      "id": "food_crate",
+      "label": "Food Crate",
+      "category": "civilian_supplies",
+      "base_price_credits": 20,
+      "mass_game_units": 3
+    },
+    {
+      "id": "medical_pack",
+      "label": "Medical Pack",
+      "category": "civilian_supplies",
+      "base_price_credits": 30,
+      "mass_game_units": 2
+    },
+    {
+      "id": "spare_parts",
+      "label": "Spare Parts",
+      "category": "maintenance",
+      "base_price_credits": 18,
+      "mass_game_units": 4
+    }
   ],
   "pois": [
-    {"id": "poi_port_lyria",    "name": "Port Lyria",    "kind": "town",     "region_id": "region_asterion_west", "pose": {"position": [0, 0, 0],        "rotation": [0, 0, 0]}},
-    {"id": "poi_harbor_west",   "name": "Harbor West",   "kind": "port",     "region_id": "region_asterion_west", "pose": {"position": [-600, 150, 0],   "rotation": [0, 0, 0]}},
-    {"id": "poi_windfield",     "name": "Windfield",     "kind": "airfield", "region_id": "region_asterion_west", "pose": {"position": [400, -500, 0],   "rotation": [0, 0, 0]}},
-    {"id": "poi_beacon_clinic", "name": "Beacon Clinic", "kind": "clinic",   "region_id": "region_asterion_west", "pose": {"position": [900, 300, 0],    "rotation": [0, 0, 0]}},
-    {"id": "poi_depot_south",   "name": "Depot South",   "kind": "depot",    "region_id": "region_asterion_west", "pose": {"position": [100, -250, 0],   "rotation": [0, 0, 0]}},
-    {"id": "poi_pinewatch",     "name": "Pinewatch",     "kind": "hamlet",   "region_id": "region_asterion_west", "pose": {"position": [-1200, 900, 0],  "rotation": [0, 0, 0]}}
+    {
+      "id": "poi_port_lyria",
+      "name": "Port Lyria",
+      "kind": "town",
+      "region_id": "region_asterion_west",
+      "pose": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "id": "poi_harbor_west",
+      "name": "Harbor West",
+      "kind": "port",
+      "region_id": "region_asterion_west",
+      "pose": {
+        "position": [
+          -600,
+          150,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "id": "poi_windfield",
+      "name": "Windfield",
+      "kind": "airfield",
+      "region_id": "region_asterion_west",
+      "pose": {
+        "position": [
+          400,
+          -500,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "id": "poi_beacon_clinic",
+      "name": "Beacon Clinic",
+      "kind": "clinic",
+      "region_id": "region_asterion_west",
+      "pose": {
+        "position": [
+          900,
+          300,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "id": "poi_depot_south",
+      "name": "Depot South",
+      "kind": "depot",
+      "region_id": "region_asterion_west",
+      "pose": {
+        "position": [
+          100,
+          -250,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "id": "poi_pinewatch",
+      "name": "Pinewatch",
+      "kind": "hamlet",
+      "region_id": "region_asterion_west",
+      "pose": {
+        "position": [
+          -1200,
+          900,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "id": "poi_reef_survey",
+      "name": "Tidewatch Reef (survey site)",
+      "kind": "underwater_site",
+      "region_id": "region_asterion_west",
+      "pose": {
+        "position": [
+          -900,
+          500,
+          -40
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ]
+      }
+    }
   ],
   "npcs": [
-    {"id": "npc_mayor_elara",     "name": "Mayor Elara Venn",     "role_tag": "mayor",          "poi_id": "poi_port_lyria",    "faction_id": "faction_commonwealth"},
-    {"id": "npc_harbor_master",   "name": "Harbor Master Teodor Kael", "role_tag": "harbor_master", "poi_id": "poi_harbor_west", "faction_id": "faction_commonwealth"},
-    {"id": "npc_windfield_chief", "name": "Flight Chief Mara Solenne", "role_tag": "airfield_chief", "poi_id": "poi_windfield", "faction_id": "faction_relief"},
-    {"id": "npc_clinic_nurse",    "name": "Nurse Ilan Doreth",    "role_tag": "clinic_lead",    "poi_id": "poi_beacon_clinic", "faction_id": "faction_relief"},
-    {"id": "npc_depot_mechanic",  "name": "Mechanic Rosa Vint",   "role_tag": "mechanic",       "poi_id": "poi_depot_south",   "faction_id": "faction_commonwealth"}
+    {
+      "id": "npc_mayor_elara",
+      "name": "Mayor Elara Venn",
+      "role_tag": "mayor",
+      "poi_id": "poi_port_lyria",
+      "faction_id": "faction_commonwealth"
+    },
+    {
+      "id": "npc_harbor_master",
+      "name": "Harbor Master Teodor Kael",
+      "role_tag": "harbor_master",
+      "poi_id": "poi_harbor_west",
+      "faction_id": "faction_commonwealth"
+    },
+    {
+      "id": "npc_windfield_chief",
+      "name": "Flight Chief Mara Solenne",
+      "role_tag": "airfield_chief",
+      "poi_id": "poi_windfield",
+      "faction_id": "faction_relief"
+    },
+    {
+      "id": "npc_clinic_nurse",
+      "name": "Nurse Ilan Doreth",
+      "role_tag": "clinic_lead",
+      "poi_id": "poi_beacon_clinic",
+      "faction_id": "faction_relief"
+    },
+    {
+      "id": "npc_depot_mechanic",
+      "name": "Mechanic Rosa Vint",
+      "role_tag": "mechanic",
+      "poi_id": "poi_depot_south",
+      "faction_id": "faction_commonwealth"
+    }
   ],
   "vehicle_definitions": [
-    {"definition_id": "utility_truck_fictional",       "display_name": "Coastal Utility Truck",       "vehicle_class": "ground",     "control_profile": "ground_assisted",   "seats": [{"seat_id": "driver", "is_control_seat": true}, {"seat_id": "passenger"}], "cargo_capacity_game_units": 40},
-    {"definition_id": "helicopter_light_fictional",    "display_name": "Windfield Rescue Helicopter", "vehicle_class": "rotorcraft", "control_profile": "aviation_assisted", "seats": [{"seat_id": "pilot", "is_control_seat": true}, {"seat_id": "passenger"}],  "cargo_capacity_game_units": 24},
-    {"definition_id": "utility_patrol_boat_fictional", "display_name": "Harbor Utility Boat",         "vehicle_class": "naval",      "control_profile": "naval_assisted",    "seats": [{"seat_id": "captain", "is_control_seat": true}, {"seat_id": "passenger"}], "cargo_capacity_game_units": 55}
+    {
+      "definition_id": "utility_truck_fictional",
+      "display_name": "Coastal Utility Truck",
+      "vehicle_class": "ground",
+      "control_profile": "ground_assisted",
+      "seats": [
+        {
+          "seat_id": "driver",
+          "is_control_seat": true
+        },
+        {
+          "seat_id": "passenger"
+        }
+      ],
+      "cargo_capacity_game_units": 40,
+      "handling": {
+        "mass_t": 3.2,
+        "max_speed_mps": 22,
+        "accel_mps2": 3.0,
+        "brake_mps2": 6.0,
+        "turn_rate_dps": 60,
+        "offroad_grip": 0.7,
+        "height_m": 2.2
+      }
+    },
+    {
+      "definition_id": "light_4x4_fictional",
+      "display_name": "Ridge 4x4",
+      "vehicle_class": "ground",
+      "control_profile": "ground_assisted",
+      "seats": [
+        {
+          "seat_id": "driver",
+          "is_control_seat": true
+        },
+        {
+          "seat_id": "passenger"
+        }
+      ],
+      "cargo_capacity_game_units": 16,
+      "handling": {
+        "mass_t": 1.9,
+        "max_speed_mps": 30,
+        "accel_mps2": 4.5,
+        "brake_mps2": 7.5,
+        "turn_rate_dps": 80,
+        "offroad_grip": 0.9,
+        "height_m": 1.9
+      }
+    },
+    {
+      "definition_id": "tracked_transport_fictional",
+      "display_name": "Asterion Tracked Carrier",
+      "vehicle_class": "armored",
+      "control_profile": "tracked_assisted",
+      "seats": [
+        {
+          "seat_id": "driver",
+          "is_control_seat": true
+        },
+        {
+          "seat_id": "commander"
+        },
+        {
+          "seat_id": "passenger"
+        }
+      ],
+      "cargo_capacity_game_units": 30,
+      "handling": {
+        "mass_t": 14.0,
+        "max_speed_mps": 16,
+        "accel_mps2": 1.6,
+        "brake_mps2": 4.0,
+        "turn_rate_dps": 35,
+        "offroad_grip": 1.0,
+        "height_m": 2.6
+      }
+    },
+    {
+      "definition_id": "tracked_heavy_fictional",
+      "display_name": "Bastion Heavy Tracked (fictional)",
+      "vehicle_class": "armored",
+      "control_profile": "tracked_assisted",
+      "seats": [
+        {
+          "seat_id": "driver",
+          "is_control_seat": true
+        },
+        {
+          "seat_id": "commander"
+        },
+        {
+          "seat_id": "crew"
+        }
+      ],
+      "cargo_capacity_game_units": 8,
+      "handling": {
+        "mass_t": 38.0,
+        "max_speed_mps": 13,
+        "accel_mps2": 1.0,
+        "brake_mps2": 3.0,
+        "turn_rate_dps": 25,
+        "offroad_grip": 1.0,
+        "height_m": 2.9
+      }
+    },
+    {
+      "definition_id": "helicopter_light_fictional",
+      "display_name": "Windfield Rescue Helicopter",
+      "vehicle_class": "rotorcraft",
+      "control_profile": "aviation_assisted",
+      "seats": [
+        {
+          "seat_id": "pilot",
+          "is_control_seat": true
+        },
+        {
+          "seat_id": "passenger"
+        }
+      ],
+      "cargo_capacity_game_units": 24,
+      "handling": {
+        "mass_t": 2.4,
+        "max_speed_mps": 60,
+        "climb_rate_mps": 6,
+        "yaw_rate_dps": 60,
+        "tilt_rate_dps": 40,
+        "hover_ceiling_m": 3000
+      }
+    },
+    {
+      "definition_id": "helicopter_utility_fictional",
+      "display_name": "Orion Utility Helicopter",
+      "vehicle_class": "rotorcraft",
+      "control_profile": "aviation_assisted",
+      "seats": [
+        {
+          "seat_id": "pilot",
+          "is_control_seat": true
+        },
+        {
+          "seat_id": "copilot"
+        },
+        {
+          "seat_id": "passenger"
+        }
+      ],
+      "cargo_capacity_game_units": 60,
+      "handling": {
+        "mass_t": 6.5,
+        "max_speed_mps": 75,
+        "climb_rate_mps": 5,
+        "yaw_rate_dps": 40,
+        "tilt_rate_dps": 30,
+        "hover_ceiling_m": 2600
+      }
+    },
+    {
+      "definition_id": "prop_trainer_fictional",
+      "display_name": "Skylark Prop Trainer",
+      "vehicle_class": "fixed_wing",
+      "control_profile": "aviation_assisted",
+      "seats": [
+        {
+          "seat_id": "pilot",
+          "is_control_seat": true
+        },
+        {
+          "seat_id": "passenger"
+        }
+      ],
+      "cargo_capacity_game_units": 6,
+      "handling": {
+        "mass_t": 1.1,
+        "max_speed_mps": 70,
+        "stall_speed_mps": 25,
+        "climb_rate_mps": 5,
+        "roll_rate_dps": 90,
+        "pitch_rate_dps": 30
+      }
+    },
+    {
+      "definition_id": "cargo_plane_fictional",
+      "display_name": "Orion Coastal Freighter",
+      "vehicle_class": "fixed_wing",
+      "control_profile": "aviation_assisted",
+      "seats": [
+        {
+          "seat_id": "pilot",
+          "is_control_seat": true
+        },
+        {
+          "seat_id": "copilot"
+        },
+        {
+          "seat_id": "passenger"
+        }
+      ],
+      "cargo_capacity_game_units": 120,
+      "handling": {
+        "mass_t": 12.0,
+        "max_speed_mps": 110,
+        "stall_speed_mps": 40,
+        "climb_rate_mps": 7,
+        "roll_rate_dps": 35,
+        "pitch_rate_dps": 15
+      }
+    },
+    {
+      "definition_id": "utility_patrol_boat_fictional",
+      "display_name": "Harbor Utility Boat",
+      "vehicle_class": "naval",
+      "control_profile": "naval_assisted",
+      "seats": [
+        {
+          "seat_id": "captain",
+          "is_control_seat": true
+        },
+        {
+          "seat_id": "passenger"
+        }
+      ],
+      "cargo_capacity_game_units": 55,
+      "handling": {
+        "mass_t": 9.0,
+        "max_speed_mps": 14,
+        "accel_mps2": 1.2,
+        "turn_rate_dps": 30,
+        "draft_m": 1.0,
+        "length_m": 12
+      }
+    },
+    {
+      "definition_id": "coastal_supply_ship_fictional",
+      "display_name": "Cobalt Coastal Supply Ship",
+      "vehicle_class": "naval",
+      "control_profile": "naval_assisted",
+      "seats": [
+        {
+          "seat_id": "captain",
+          "is_control_seat": true
+        },
+        {
+          "seat_id": "helm"
+        },
+        {
+          "seat_id": "passenger"
+        }
+      ],
+      "cargo_capacity_game_units": 400,
+      "handling": {
+        "mass_t": 450.0,
+        "max_speed_mps": 8,
+        "accel_mps2": 0.25,
+        "turn_rate_dps": 6,
+        "draft_m": 3.5,
+        "length_m": 48
+      }
+    },
+    {
+      "definition_id": "research_submarine_fictional",
+      "display_name": "Tidewatch Research Submarine",
+      "vehicle_class": "submarine",
+      "control_profile": "submarine_assisted",
+      "seats": [
+        {
+          "seat_id": "captain",
+          "is_control_seat": true
+        },
+        {
+          "seat_id": "sensor_operator"
+        },
+        {
+          "seat_id": "passenger"
+        }
+      ],
+      "cargo_capacity_game_units": 20,
+      "handling": {
+        "mass_t": 25.0,
+        "max_speed_surface_mps": 6,
+        "max_speed_submerged_mps": 4,
+        "accel_mps2": 0.4,
+        "turn_rate_dps": 12,
+        "max_depth_m": 120,
+        "dive_rate_mps": 1.0,
+        "length_m": 16
+      }
+    }
   ],
   "vehicles": [
-    {"id": "vehicle_truck_001", "definition_id": "utility_truck_fictional",       "region_id": "region_asterion_west", "home_poi_id": "poi_depot_south", "condition_normalized": 1.0},
-    {"id": "vehicle_helo_001",  "definition_id": "helicopter_light_fictional",    "region_id": "region_asterion_west", "home_poi_id": "poi_windfield",   "condition_normalized": 1.0},
-    {"id": "vehicle_boat_001",  "definition_id": "utility_patrol_boat_fictional", "region_id": "region_asterion_west", "home_poi_id": "poi_harbor_west", "condition_normalized": 1.0}
+    {
+      "id": "vehicle_truck_001",
+      "definition_id": "utility_truck_fictional",
+      "region_id": "region_asterion_west",
+      "home_poi_id": "poi_depot_south",
+      "condition_normalized": 1.0
+    },
+    {
+      "id": "vehicle_helo_001",
+      "definition_id": "helicopter_light_fictional",
+      "region_id": "region_asterion_west",
+      "home_poi_id": "poi_windfield",
+      "condition_normalized": 1.0
+    },
+    {
+      "id": "vehicle_boat_001",
+      "definition_id": "utility_patrol_boat_fictional",
+      "region_id": "region_asterion_west",
+      "home_poi_id": "poi_harbor_west",
+      "condition_normalized": 1.0
+    },
+    {
+      "id": "vehicle_sub_001",
+      "definition_id": "research_submarine_fictional",
+      "region_id": "region_asterion_west",
+      "home_poi_id": "poi_harbor_west",
+      "condition_normalized": 1.0,
+      "pose": {
+        "position": [
+          -640,
+          170,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ]
+      }
+    }
   ],
   "infrastructure": [
-    {"id": "port_harbor_west",   "kind": "port",     "poi_id": "poi_harbor_west", "region_id": "region_asterion_west"},
-    {"id": "airfield_windfield", "kind": "airfield", "poi_id": "poi_windfield",   "region_id": "region_asterion_west"}
+    {
+      "id": "port_harbor_west",
+      "kind": "port",
+      "poi_id": "poi_harbor_west",
+      "region_id": "region_asterion_west"
+    },
+    {
+      "id": "airfield_windfield",
+      "kind": "airfield",
+      "poi_id": "poi_windfield",
+      "region_id": "region_asterion_west"
+    }
   ],
   "economy_nodes": [
     {
-      "id": "economy_port_lyria", "region_id": "region_asterion_west", "poi_id": "poi_port_lyria",
-      "stocks":           {"water_pack": 30, "food_crate": 20, "medical_pack": 12, "spare_parts": 17},
-      "capacity_by_item": {"water_pack": 100, "food_crate": 100, "medical_pack": 100, "spare_parts": 100},
-      "target_stock":     {"water_pack": 40, "food_crate": 30, "medical_pack": 15, "spare_parts": 20},
-      "production_per_step":  {"water_pack": 2, "food_crate": 1},
-      "consumption_per_step": {"water_pack": 1}
+      "id": "economy_port_lyria",
+      "region_id": "region_asterion_west",
+      "poi_id": "poi_port_lyria",
+      "stocks": {
+        "water_pack": 30,
+        "food_crate": 20,
+        "medical_pack": 12,
+        "spare_parts": 17
+      },
+      "capacity_by_item": {
+        "water_pack": 100,
+        "food_crate": 100,
+        "medical_pack": 100,
+        "spare_parts": 100
+      },
+      "target_stock": {
+        "water_pack": 40,
+        "food_crate": 30,
+        "medical_pack": 15,
+        "spare_parts": 20
+      },
+      "production_per_step": {
+        "water_pack": 2,
+        "food_crate": 1
+      },
+      "consumption_per_step": {
+        "water_pack": 1
+      }
     },
     {
-      "id": "economy_beacon_clinic", "region_id": "region_asterion_west", "poi_id": "poi_beacon_clinic",
-      "stocks":           {"water_pack": 5, "food_crate": 3, "medical_pack": 2},
-      "capacity_by_item": {"water_pack": 50, "food_crate": 50, "medical_pack": 50},
-      "target_stock":     {"water_pack": 20, "food_crate": 15, "medical_pack": 10},
-      "consumption_per_step": {"water_pack": 1, "food_crate": 1, "medical_pack": 1}
+      "id": "economy_beacon_clinic",
+      "region_id": "region_asterion_west",
+      "poi_id": "poi_beacon_clinic",
+      "stocks": {
+        "water_pack": 5,
+        "food_crate": 3,
+        "medical_pack": 2
+      },
+      "capacity_by_item": {
+        "water_pack": 50,
+        "food_crate": 50,
+        "medical_pack": 50
+      },
+      "target_stock": {
+        "water_pack": 20,
+        "food_crate": 15,
+        "medical_pack": 10
+      },
+      "consumption_per_step": {
+        "water_pack": 1,
+        "food_crate": 1,
+        "medical_pack": 1
+      }
     },
     {
-      "id": "economy_pinewatch", "region_id": "region_asterion_west", "poi_id": "poi_pinewatch",
-      "stocks":           {"water_pack": 4, "food_crate": 6},
-      "capacity_by_item": {"water_pack": 40, "food_crate": 40},
-      "target_stock":     {"water_pack": 20, "food_crate": 15},
-      "consumption_per_step": {"water_pack": 1, "food_crate": 1}
+      "id": "economy_pinewatch",
+      "region_id": "region_asterion_west",
+      "poi_id": "poi_pinewatch",
+      "stocks": {
+        "water_pack": 4,
+        "food_crate": 6
+      },
+      "capacity_by_item": {
+        "water_pack": 40,
+        "food_crate": 40
+      },
+      "target_stock": {
+        "water_pack": 20,
+        "food_crate": 15
+      },
+      "consumption_per_step": {
+        "water_pack": 1,
+        "food_crate": 1
+      }
     }
   ],
   "mission_templates": [
     {
-      "id": "mission_first_contact", "title": "First Contact", "type": "story",
-      "issuer_faction_id": "faction_commonwealth", "region_id": "region_asterion_west",
-      "eligible_vehicle_classes": ["ground"],
-      "objectives": [
-        {"id": "obj_accept",  "type": "Interact", "target_id": "npc_mayor_elara"},
-        {"id": "obj_harbor",  "type": "Interact", "target_id": "npc_harbor_master"},
-        {"id": "obj_debrief", "type": "Interact", "target_id": "npc_mayor_elara"}
+      "id": "mission_first_contact",
+      "title": "First Contact",
+      "type": "story",
+      "issuer_faction_id": "faction_commonwealth",
+      "region_id": "region_asterion_west",
+      "eligible_vehicle_classes": [
+        "ground"
       ],
-      "rewards": {"credits": 30, "local_trust_delta": 2, "faction_reputation_delta": 1},
+      "objectives": [
+        {
+          "id": "obj_accept",
+          "type": "Interact",
+          "target_id": "npc_mayor_elara"
+        },
+        {
+          "id": "obj_harbor",
+          "type": "Interact",
+          "target_id": "npc_harbor_master"
+        },
+        {
+          "id": "obj_debrief",
+          "type": "Interact",
+          "target_id": "npc_mayor_elara"
+        }
+      ],
+      "rewards": {
+        "credits": 30,
+        "local_trust_delta": 2,
+        "faction_reputation_delta": 1
+      },
       "prerequisites": {}
     },
     {
-      "id": "mission_road_supplies", "title": "Road Supplies", "type": "civilian_relief",
-      "issuer_faction_id": "faction_commonwealth", "region_id": "region_asterion_west",
-      "eligible_vehicle_classes": ["ground", "rotorcraft"],
-      "objectives": [
-        {"id": "obj_accept",    "type": "Interact", "target_id": "npc_mayor_elara"},
-        {"id": "obj_transport", "type": "TransportCargo", "item_id": "food_crate", "quantity": 6, "destination_node_id": "economy_beacon_clinic"},
-        {"id": "obj_debrief",   "type": "Interact", "target_id": "npc_mayor_elara"}
+      "id": "mission_road_supplies",
+      "title": "Road Supplies",
+      "type": "civilian_relief",
+      "issuer_faction_id": "faction_commonwealth",
+      "region_id": "region_asterion_west",
+      "eligible_vehicle_classes": [
+        "ground",
+        "rotorcraft"
       ],
-      "rewards": {"credits": 120, "local_trust_delta": 6, "faction_reputation_delta": 2},
-      "prerequisites": {"required_completed_missions": ["mission_first_contact"]}
+      "objectives": [
+        {
+          "id": "obj_accept",
+          "type": "Interact",
+          "target_id": "npc_mayor_elara"
+        },
+        {
+          "id": "obj_transport",
+          "type": "TransportCargo",
+          "item_id": "food_crate",
+          "quantity": 6,
+          "destination_node_id": "economy_beacon_clinic"
+        },
+        {
+          "id": "obj_debrief",
+          "type": "Interact",
+          "target_id": "npc_mayor_elara"
+        }
+      ],
+      "rewards": {
+        "credits": 120,
+        "local_trust_delta": 6,
+        "faction_reputation_delta": 2
+      },
+      "prerequisites": {
+        "required_completed_missions": [
+          "mission_first_contact"
+        ]
+      }
     },
     {
-      "id": "mission_sky_relief", "title": "Sky Relief", "type": "civilian_relief",
-      "issuer_faction_id": "faction_relief", "region_id": "region_asterion_west",
-      "eligible_vehicle_classes": ["rotorcraft", "ground"],
-      "objectives": [
-        {"id": "obj_accept",    "type": "Interact", "target_id": "npc_windfield_chief"},
-        {"id": "obj_transport", "type": "TransportCargo", "item_id": "medical_pack", "quantity": 4, "destination_node_id": "economy_beacon_clinic"},
-        {"id": "obj_debrief",   "type": "Interact", "target_id": "npc_windfield_chief"}
+      "id": "mission_sky_relief",
+      "title": "Sky Relief",
+      "type": "civilian_relief",
+      "issuer_faction_id": "faction_relief",
+      "region_id": "region_asterion_west",
+      "eligible_vehicle_classes": [
+        "rotorcraft",
+        "ground"
       ],
-      "rewards": {"credits": 160, "local_trust_delta": 6, "faction_reputation_delta": 3},
-      "prerequisites": {"required_completed_missions": ["mission_road_supplies"]}
+      "objectives": [
+        {
+          "id": "obj_accept",
+          "type": "Interact",
+          "target_id": "npc_windfield_chief"
+        },
+        {
+          "id": "obj_transport",
+          "type": "TransportCargo",
+          "item_id": "medical_pack",
+          "quantity": 4,
+          "destination_node_id": "economy_beacon_clinic"
+        },
+        {
+          "id": "obj_debrief",
+          "type": "Interact",
+          "target_id": "npc_windfield_chief"
+        }
+      ],
+      "rewards": {
+        "credits": 160,
+        "local_trust_delta": 6,
+        "faction_reputation_delta": 3
+      },
+      "prerequisites": {
+        "required_completed_missions": [
+          "mission_road_supplies"
+        ]
+      }
     },
     {
-      "id": "mission_harbor_link", "title": "Harbor Link", "type": "civilian_relief",
-      "issuer_faction_id": "faction_commonwealth", "region_id": "region_asterion_west",
-      "eligible_vehicle_classes": ["naval", "rotorcraft"],
-      "objectives": [
-        {"id": "obj_accept",    "type": "Interact", "target_id": "npc_harbor_master"},
-        {"id": "obj_transport", "type": "TransportCargo", "item_id": "water_pack", "quantity": 10, "destination_node_id": "economy_pinewatch"},
-        {"id": "obj_debrief",   "type": "Interact", "target_id": "npc_harbor_master"}
+      "id": "mission_harbor_link",
+      "title": "Harbor Link",
+      "type": "civilian_relief",
+      "issuer_faction_id": "faction_commonwealth",
+      "region_id": "region_asterion_west",
+      "eligible_vehicle_classes": [
+        "naval",
+        "submarine",
+        "rotorcraft"
       ],
-      "rewards": {"credits": 150, "local_trust_delta": 5, "faction_reputation_delta": 2},
-      "prerequisites": {"required_completed_missions": ["mission_road_supplies"]}
+      "objectives": [
+        {
+          "id": "obj_accept",
+          "type": "Interact",
+          "target_id": "npc_harbor_master"
+        },
+        {
+          "id": "obj_transport",
+          "type": "TransportCargo",
+          "item_id": "water_pack",
+          "quantity": 10,
+          "destination_node_id": "economy_pinewatch"
+        },
+        {
+          "id": "obj_debrief",
+          "type": "Interact",
+          "target_id": "npc_harbor_master"
+        }
+      ],
+      "rewards": {
+        "credits": 150,
+        "local_trust_delta": 5,
+        "faction_reputation_delta": 2
+      },
+      "prerequisites": {
+        "required_completed_missions": [
+          "mission_road_supplies"
+        ]
+      }
     },
     {
-      "id": "mission_community_update", "title": "Community Update", "type": "story",
-      "issuer_faction_id": "faction_commonwealth", "region_id": "region_asterion_west",
-      "eligible_vehicle_classes": ["ground", "rotorcraft", "naval"],
-      "objectives": [
-        {"id": "obj_accept",  "type": "Interact", "target_id": "npc_mayor_elara"},
-        {"id": "obj_clinic",  "type": "Interact", "target_id": "npc_clinic_nurse"},
-        {"id": "obj_debrief", "type": "Interact", "target_id": "npc_mayor_elara"}
+      "id": "mission_community_update",
+      "title": "Community Update",
+      "type": "story",
+      "issuer_faction_id": "faction_commonwealth",
+      "region_id": "region_asterion_west",
+      "eligible_vehicle_classes": [
+        "ground",
+        "rotorcraft",
+        "naval"
       ],
-      "rewards": {"credits": 60, "local_trust_delta": 4, "faction_reputation_delta": 2},
-      "prerequisites": {"min_local_trust": 10, "required_completed_missions": ["mission_sky_relief", "mission_harbor_link"]}
+      "objectives": [
+        {
+          "id": "obj_accept",
+          "type": "Interact",
+          "target_id": "npc_mayor_elara"
+        },
+        {
+          "id": "obj_clinic",
+          "type": "Interact",
+          "target_id": "npc_clinic_nurse"
+        },
+        {
+          "id": "obj_debrief",
+          "type": "Interact",
+          "target_id": "npc_mayor_elara"
+        }
+      ],
+      "rewards": {
+        "credits": 60,
+        "local_trust_delta": 4,
+        "faction_reputation_delta": 2
+      },
+      "prerequisites": {
+        "min_local_trust": 10,
+        "required_completed_missions": [
+          "mission_sky_relief",
+          "mission_harbor_link"
+        ]
+      }
     }
   ],
   "dialogue": {

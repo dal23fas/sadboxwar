@@ -25,7 +25,19 @@ const char* vehicleClassName(VehicleClass c) {
         case VehicleClass::Rotorcraft: return "rotorcraft";
         case VehicleClass::FixedWing: return "fixed_wing";
         case VehicleClass::Naval: return "naval";
+        case VehicleClass::Submarine: return "submarine";
         default: return "unknown";
+    }
+}
+const char* defaultRealismCategory(VehicleClass c) {
+    switch (c) {
+        case VehicleClass::Ground: return "wheeled";
+        case VehicleClass::Armored: return "tracked";
+        case VehicleClass::Rotorcraft: return "helicopter";
+        case VehicleClass::FixedWing: return "fixed_wing";
+        case VehicleClass::Naval: return "surface_vessel";
+        case VehicleClass::Submarine: return "submarine";
+        default: return "infantry";
     }
 }
 VehicleClass vehicleClassFromName(const std::string& s) {
@@ -34,6 +46,7 @@ VehicleClass vehicleClassFromName(const std::string& s) {
     if (s == "rotorcraft") return VehicleClass::Rotorcraft;
     if (s == "fixed_wing") return VehicleClass::FixedWing;
     if (s == "naval") return VehicleClass::Naval;
+    if (s == "submarine") return VehicleClass::Submarine;
     return VehicleClass::Unknown;
 }
 

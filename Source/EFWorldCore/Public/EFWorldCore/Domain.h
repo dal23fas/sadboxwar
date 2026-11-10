@@ -53,7 +53,9 @@ struct SeatDef {
     bool is_control_seat = false;
 };
 
-enum class VehicleClass { Ground, Armored, Rotorcraft, FixedWing, Naval, Unknown };
+enum class VehicleClass { Ground, Armored, Rotorcraft, FixedWing, Naval, Submarine, Unknown };
+// Realism/handling category used by RealismProfileManager (supplement §2). Derived from class unless content overrides.
+const char* defaultRealismCategory(VehicleClass c);
 const char* vehicleClassName(VehicleClass c);
 VehicleClass vehicleClassFromName(const std::string& s);
 
@@ -62,6 +64,8 @@ struct VehicleDefinition {
     VehicleClass vehicle_class = VehicleClass::Unknown;
     std::vector<SeatDef> seats;
     int cargo_capacity_game_units = 0;
+    std::string realism_category;   // infantry|wheeled|tracked|helicopter|fixed_wing|surface_vessel|submarine
+    Json handling = Json::object(); // base physical parameters for the presentation controller (opaque to the core)
     bool hasSeat(const std::string& seatId) const;
     const SeatDef* seat(const std::string& seatId) const;
 };

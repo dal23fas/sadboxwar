@@ -1,0 +1,18 @@
+; Rename this file to efworldcore.gdextension AFTER building the library with scons (Source/EFGodot).
+; Shipped as .template so a project without the built library starts cleanly and World.gd uses ef_server over TCP.
+[configuration]
+
+entry_symbol = "efworldcore_library_init"
+compatibility_minimum = "4.3"
+reloadable = false
+
+[libraries]
+
+linux.debug.x86_64 = "res://bin/libefworldcore.linux.template_debug.x86_64.so"
+linux.release.x86_64 = "res://bin/libefworldcore.linux.template_release.x86_64.so"
+windows.debug.x86_64 = "res://bin/libefworldcore.windows.template_debug.x86_64.dll"
+windows.release.x86_64 = "res://bin/libefworldcore.windows.template_release.x86_64.dll"
+macos.debug = "res://bin/libefworldcore.macos.template_debug.framework"
+macos.release = "res://bin/libefworldcore.macos.template_release.framework"
+web.debug.wasm32 = "res://bin/libefworldcore.web.template_debug.wasm32.wasm"
+web.release.wasm32 = "res://bin/libefworldcore.web.template_release.wasm32.wasm"

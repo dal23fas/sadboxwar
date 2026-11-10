@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>EARTH FRONTIER — World State Viewer</title>
+<style>
+  :root { --bg:#10161c; --panel:#18222b; --ink:#dfe7ee; --muted:#8fa3b3; --accent:#f2c14e; --ok:#6ad39b; --warn:#f0a04b; --bad:#e86b6b; --sea:#1c3f5e; --land:#3b5a3a; }
+  * { box-sizing: border-box; }
+  body { margin:0; font: 14px/1.4 system-ui, sans-serif; background:var(--bg); color:var(--ink); }
+  header { display:flex; gap:16px; align-items:center; padding:10px 16px; background:var(--panel); border-bottom:1px solid #223; flex-wrap:wrap; }
+  header h1 { font-size:16px; margin:0; letter-spacing:.08em; color:var(--accent); }
+  header label { color:var(--muted); font-size:12px; }
+  main { display:grid; grid-template-columns: 1fr 420px; gap:12px; padding:12px; }
+  section { background:var(--panel); border-radius:8px; padding:10px 12px; }
+  h2 { font-size:12px; text-transform:uppercase; letter-spacing:.12em; color:var(--muted); margin:0 0 8px; }
+  canvas { width:100%; height:auto; background:var(--sea); border-radius:6px; display:block; }
+  .kv { display:grid; grid-template-columns: auto 1fr; gap:2px 12px; font-variant-numeric: tabular-nums; }
+  .kv b { color:var(--muted); font-weight:500; }
+  .bar { height:8px; background:#0b1015; border-radius:4px; overflow:hidden; margin:2px 0 6px; }
+  .bar i { display:block; height:100%; background:var(--ok); }
+  .bar.short i { background:var(--warn); } .bar.crit i { background:var(--bad); }
+  .list { max-height: 280px; overflow:auto; font-size:12px; }
+  .list div { padding:2px 0; border-bottom:1px solid #1f2b35; }
+  .tag { display:inline-block; padding:0 6px; border-radius:10px; font-size:11px; background:#263340; color:var(--ink); margin-right:4px; }
+  .tag.ok { background:#1f4d38; } .tag.bad { background:#5a2626; } .tag.warn { background:#5a4120; }
+  #empty { padding:40px; text-align:center; color:var(--muted); grid-column: 1 / -1; }
+  .right { display:flex; flex-direction:column; gap:12px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>EARTH FRONTIER · WORLD STATE VIEWER</h1>
+  <label>Save (.efsave) <input type="file" id="saveFile" accept=".efsave,.json"></label>
+  <label>Content (.json, optional) <input type="file" id="contentFile" accept=".json"></label>
+  <span id="meta" style="color:var(--muted);font-size:12px"></span>
+</header>
+<main id="main">
+  <div id="empty">Drop or choose a <code>.efsave</code> file produced by ef_headless / ef_server / the Godot build.<br>Add the content JSON to see POI names and positions on the map.</div>
+</main>
+<script>
+(() => {
+  let save = null, content = null;
+  const $ = (s) => document.querySelector(s);
+  const readJson = (file) => new Promise((res, rej) => { const r = new FileReader(); r.onload = () => { try { res(JSON.parse(r.result)); } catch (e) { rej(e); } }; r.onerror = rej; r.readAsText(file); });
+  $('#saveFile').addEventListener('change', async (e) => { save = await readJson(e.target.files[0]); render(); });
+  $('#contentFile').addEventListener('change', async (e) => { content = await readJson(e.target.files[0]); render(); });
+  document.body.addEventListener('dragover', (e) => e.preventDefault());
+  document.body.addEventListener('drop', async (e) => { e.preventDefault(); for (const f of e.dataTransfer.files) { const j = await readJson(f); if (j.snapshot) save = j; else if (j.pois) content = j; } render(); });
+  // Programmatic entry point (used by the Playwright check and by tools): window.efViewerLoad(saveJson, contentJson)
+  window.efViewerLoad = (s, c) => { save = s; content = c || content; render(); };
+
+  const band = (v) => v <= -60 ? 'Hostile' : v <= -20 ? 'Distrusted' : v < 20 ? 'Neutral' : v < 60 ? 'Trusted' : 'Allied';
+  const clock = (t) => { const tph = t.ticks_per_hour || 60, sh = t.start_hour || 8; const d = Math.floor(t.tick / (tph * 24)) + 1, h = (sh + Math.floor(t.tick / tph)) % 24, m = t.tick % tph; return `Day ${d} ${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`; };
+
+  function render() {
+    if (!save || !save.snapshot) return;
+    const s = save.snapshot, meta = save.meta || {};
+    $('#meta').textContent = `slot ${meta.slot_name || '?'} · schema v${s.schema_version} · content ${s.content_id} · tick ${s.time.tick} · ${clock(s.time)} · journal ${s.journal.events.length} events`;
+    const main = $('#main'); main.innerHTML = '';
+    const left = document.createElement('div'); left.className = 'right';
+    const right = document.createElement('div'); right.className = 'right';
+    main.append(left, right);
+
+    // ---- map
+    const mapSec = el('section', `<h2>Asterion map (core x/y, metres) · player, vehicles, POIs, infrastructure</h2><canvas id="map" width="900" height="620"></canvas>`);
+    left.append(mapSec);
+    drawMap(mapSec.querySelector('canvas'), s);
+
+    // ---- economy
+    const items = content ? Object.fromEntries(content.items.map(i => [i.id, i.label])) : {};
+    let eco = '';
+    for (const n of s.economy_nodes) {
+      eco += `<div style="margin-bottom:8px"><b>${poiName(n.poi_id)}</b> <span class="tag">${n.id}</span>`;
+      for (const [item, qty] of Object.entries(n.stocks)) {
+        const target = (n.target_stock && n.target_stock[item]) || Math.floor((n.capacity_by_item[item] || 0) / 2) || 1;
+        const shortage = Math.max(0, Math.min(1, (target - qty) / target));
+        eco += `<div class="kv"><b>${items[item] || item}</b><span>${qty} / cap ${n.capacity_by_item[item] || '–'} · shortage ${(shortage*100).toFixed(0)}%</span></div><div class="bar ${shortage >= .8 ? 'crit' : shortage >= .4 ? 'short' : ''}"><i style="width:${Math.min(100, 100*qty/Math.max(1,(n.capacity_by_item[item]||qty)))}%"></i></div>`;
+      }
+      eco += '</div>';
+    }
+    left.append(el('section', `<h2>Economy nodes</h2>${eco}`));
+
+    // ---- player / possession / regions / factions
+    const p = s.player, po = s.possession;
+    let kv = `<div class="kv"><b>Player</b><span>${p.entity_id} · ${p.credits} credits · region ${p.region_id}</span>
+      <b>Possession</b><span>${po.mode}${po.mode === 'seated' ? ` in ${po.vehicle_id} / ${po.seat_id}` : ''} · role ${po.role}</span>
+      <b>Inventory</b><span>${Object.entries(p.inventory).map(([k,v]) => `${v}× ${items[k]||k}`).join(', ') || '—'}</span>`;
+    for (const r of s.regions) { const w = s.weather.find(x => x.region_id === r.id); kv += `<b>${r.name}</b><span>control ${r.control_faction_id} · stability ${r.stability_normalized.toFixed(3)} · trust ${r.local_trust} (${band(r.local_trust)}) · weather ${w ? w.condition : '?'}</span>`; }
+    for (const f of s.factions) kv += `<b>${f.name}</b><span>reputation ${f.reputation} (${band(f.reputation)})</span>`;
+    for (const i of s.infrastructure) kv += `<b>${i.id}</b><span class="tag ${i.status === 'operational' ? 'ok' : 'bad'}">${i.status}</span>`;
+    kv += `<b>Campaign</b><span>${s.campaign.act} · flags ${Object.keys(s.campaign.flags).length}</span></div>`;
+    right.append(el('section', `<h2>World state</h2>${kv}`));
+
+    // ---- vehicles
+    let veh = '';
+    for (const v of s.vehicles) veh += `<div><b>${v.entity_id}</b> <span class="tag">${v.definition_id}</span> pos (${v.pose.position.map(x => x.toFixed(0)).join(', ')}) · cond ${(v.condition_normalized*100).toFixed(0)}% · seats ${v.occupied_seats.map(x => `${x.seat_id}:${x.occupant_entity_id}`).join(', ') || 'empty'} · cargo ${Object.entries(v.cargo).map(([k,q]) => `${q}× ${k}`).join(', ') || '—'}</div>`;
+    right.append(el('section', `<h2>Vehicles</h2><div class="list">${veh}</div>`));
+
+    // ---- missions
+    let mis = '';
+    for (const m of s.missions) { const cls = m.status === 'Completed' ? 'ok' : m.status === 'Active' ? 'warn' : ''; mis += `<div><span class="tag ${cls}">${m.status}</span>${m.mission_id} · objective ${m.current_objective_index}${m.delivered_quantity ? ` · delivered ${m.delivered_quantity}` : ''}${m.completion_event_id ? ` · by ${m.completion_event_id}` : ''}</div>`; }
+    right.append(el('section', `<h2>Missions</h2><div class="list">${mis}</div>`));
+
+    // ---- news + journal
+    const news = s.news.slice(-12).reverse().map(n => `<div>t=${n.tick} ${n.headline} <span class="tag">${n.source_event_id}</span></div>`).join('');
+    right.append(el('section', `<h2>News (latest 12 of ${s.news.length})</h2><div class="list">${news}</div>`));
+    const ev = s.journal.events.slice(-40).reverse().map(e => `<div><span class="tag">${e.event_id}</span>t=${e.occurred_at_world_tick} <b>${e.event_type}</b> ← ${e.source_entity_id}</div>`).join('');
+    right.append(el('section', `<h2>Journal (latest 40 of ${s.journal.events.length}, seq ${s.journal.sequence})</h2><div class="list">${ev}</div>`));
+  }
+
+  function poiName(id) { if (!content) return id; const p = content.pois.find(p => p.id === id); return p ? p.name : id; }
+  function el(tag, html) { const e = document.createElement(tag); e.innerHTML = html; return e; }
+
+  function drawMap(canvas, s) {
+    const ctx = canvas.getContext('2d'); const W = canvas.width, H = canvas.height;
+    const pts = [];
+    if (content) for (const p of content.pois) pts.push(p.pose.position);
+    for (const v of s.vehicles) pts.push(v.pose.position);
+    pts.push(s.player.pose.position);
+    let minX = Math.min(...pts.map(p => p[0])) - 150, maxX = Math.max(...pts.map(p => p[0])) + 150;
+    let minY = Math.min(...pts.map(p => p[1])) - 150, maxY = Math.max(...pts.map(p => p[1])) + 150;
+    const sc = Math.min(W / (maxX - minX), H / (maxY - minY));
+    const X = (x) => (x - minX) * sc + (W - (maxX - minX) * sc) / 2;
+    const Y = (y) => H - ((y - minY) * sc + (H - (maxY - minY) * sc) / 2);
+    ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--sea'); ctx.fillRect(0, 0, W, H);
+    // land placeholder: everything east of x=-400 (matches the Godot bootstrap slabs)
+    ctx.fillStyle = '#3b5a3a'; ctx.fillRect(X(-400), 0, W, H);
+    ctx.strokeStyle = '#ffffff22'; for (let gx = Math.ceil(minX/250)*250; gx < maxX; gx += 250) { ctx.beginPath(); ctx.moveTo(X(gx), 0); ctx.lineTo(X(gx), H); ctx.stroke(); }
+    for (let gy = Math.ceil(minY/250)*250; gy < maxY; gy += 250) { ctx.beginPath(); ctx.moveTo(0, Y(gy)); ctx.lineTo(W, Y(gy)); ctx.stroke(); }
+    ctx.font = '12px system-ui'; ctx.textAlign = 'center';
+    if (content) for (const p of content.pois) {
+      const infra = content.infrastructure.find(i => i.poi_id === p.id);
+      const st = infra ? (s.infrastructure.find(i => i.id === infra.id) || {}).status : null;
+      ctx.beginPath(); ctx.arc(X(p.pose.position[0]), Y(p.pose.position[1]), 9, 0, Math.PI * 2);
+      ctx.fillStyle = st ? (st === 'operational' ? '#6ad39b' : '#e86b6b') : '#f2c14e'; ctx.fill();
+      ctx.fillStyle = '#eef'; ctx.fillText(`${p.name}${st ? ` [${st}]` : ''}`, X(p.pose.position[0]), Y(p.pose.position[1]) - 14);
+      const node = s.economy_nodes.find(n => n.poi_id === p.id);
+      if (node) { const total = Object.values(node.stocks).reduce((a, b) => a + b, 0); ctx.fillStyle = '#cfd8e3'; ctx.fillText(`stock ${total}`, X(p.pose.position[0]), Y(p.pose.position[1]) + 22); }
+    }
+    for (const v of s.vehicles) {
+      const [x, y] = v.pose.position; ctx.fillStyle = '#ffffff'; ctx.fillRect(X(x) - 5, Y(y) - 5, 10, 10);
+      ctx.fillStyle = '#fff'; ctx.fillText(v.entity_id.replace('vehicle_', ''), X(x), Y(y) + 20);
+    }
+    const pp = s.possession.mode === 'seated' ? (s.vehicles.find(v => v.entity_id === s.possession.vehicle_id) || s.player).pose.position : s.player.pose.position;
+    ctx.beginPath(); ctx.arc(X(pp[0]), Y(pp[1]), 7, 0, Math.PI * 2); ctx.fillStyle = '#4ea3ff'; ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = '#fff'; ctx.stroke();
+    ctx.fillStyle = '#4ea3ff'; ctx.fillText('player', X(pp[0]), Y(pp[1]) - 12);
+    const w = s.weather[0]; ctx.textAlign = 'left'; ctx.fillStyle = '#fff'; ctx.font = '14px system-ui';
+    ctx.fillText(`${clock(s.time)} · weather ${w ? w.condition : '?'} · trust ${s.regions[0].local_trust}`, 12, 22);
+  }
+})();
+</script>
+</body>
+</html>

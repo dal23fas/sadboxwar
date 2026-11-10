@@ -1,0 +1,31 @@
+# UNVERIFIED IN THIS ENVIRONMENT. Builds the EFWorldCore GDExtension for Godot 4.
+#
+#   cd Source/EFGodot
+#   git clone -b 4.3 https://github.com/godotengine/godot-cpp     (match your Godot minor version)
+#   scons platform=windows|linux|macos target=template_debug      (and template_release for exports)
+#
+# Output: godot/bin/libefworldcore.<platform>.<target>.<arch>.<ext>, referenced by godot/bin/efworldcore.gdextension
+import os
+
+env = SConscript("godot-cpp/SConstruct")
+
+core_dir = os.path.join("..", "EFWorldCore")
+env.Append(CPPPATH=["src/", os.path.join(core_dir, "Public")])
+sources = Glob("src/*.cpp") + Glob(os.path.join(core_dir, "Private", "*.cpp"))
+
+# godot-cpp already disables exceptions on most targets; the core compiles with -fno-exceptions -fno-rtti.
+if env["platform"] != "windows":
+    env.Append(CXXFLAGS=["-std=c++17"])
+
+suffix = env["suffix"]
+shlib_suffix = env["SHLIBSUFFIX"]
+out_dir = os.path.join("..", "..", "godot", "bin")
+if env["platform"] == "macos":
+    library = env.SharedLibrary(
+        os.path.join(out_dir, "libefworldcore.{}.{}.framework/libefworldcore.{}.{}".format(env["platform"], env["target"], env["platform"], env["target"])),
+        source=sources,
+    )
+else:
+    library = env.SharedLibrary(os.path.join(out_dir, "libefworldcore{}{}".format(suffix, shlib_suffix)), source=sources)
+
+Default(library)
