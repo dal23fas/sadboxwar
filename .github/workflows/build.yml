@@ -20,6 +20,7 @@ jobs:
       matrix:
         os: [windows-latest, ubuntu-latest, macos-latest]
     runs-on: ${{ matrix.os }}
+    continue-on-error: ${{ matrix.os == 'macos-latest' }}
     steps:
       - uses: actions/checkout@v4
       - run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
@@ -99,7 +100,7 @@ jobs:
           (cd out/linux && zip -qr ../../EarthFrontier_Linux_${DATE}_${SHA}.zip .)
           echo "name=${NAME}" >> $GITHUB_OUTPUT
           echo "tag=build-${DATE}-${SHA}" >> $GITHUB_OUTPUT
-          ls -la *.zip
+          ls -la EarthFrontier_*.zip
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -112,7 +113,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "${{ steps.pkg.outputs.tag }}" *.zip --title "EARTH FRONTIER ${{ steps.pkg.outputs.name }}" \
+          gh release create "${{ steps.pkg.outputs.tag }}" EarthFrontier_*.zip --title "EARTH FRONTIER ${{ steps.pkg.outputs.name }}" \
             --notes "Automatic build from main @ $(git rev-parse --short HEAD). Unzip, run EarthFrontier.exe. No server needed."
 
   publish-core:

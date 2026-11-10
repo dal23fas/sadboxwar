@@ -161,3 +161,76 @@ func _build_collision() -> void:
 	col.position = Vector3(MIN_X + (width - 1) * CELL * 0.5, 0.0, MIN_Z + (depth - 1) * CELL * 0.5)
 	col.scale = Vector3(CELL, 1.0, CELL)
 	add_child(col)
+
+# ---------------------------------------------------------------- dressing: road ribbons and vegetation
+func build_dressing(parent: Node3D, rng_seed: int = 7) -> void:
+	_build_road_ribbons(parent)
+	_build_vegetation(parent, rng_seed)
+
+func _build_road_ribbons(parent: Node3D) -> void:
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var half := 4.0
+	var idx := 0
+	for rd in _roads:
+		var a: Vector2 = rd[0]; var b: Vector2 = rd[1]
+		var ga := Vector3(a.x, 0, -a.y); var gb := Vector3(b.x, 0, -b.y)
+		var dir := (gb - ga).normalized()
+		var side := Vector3(-dir.z, 0, dir.x) * half
+		var length := ga.distance_to(gb)
+		var steps: int = max(2, int(length / 10.0))
+		for i in range(steps + 1):
+			var t := float(i) / float(steps)
+			var p := ga.lerp(gb, t)
+			var l := p - side; var r := p + side
+			l.y = height_at(l.x, l.z) + 0.15; r.y = height_at(r.x, r.z) + 0.15
+			st.set_normal(Vector3.UP); st.set_color(Color(0.2, 0.2, 0.21)); st.add_vertex(l)
+			st.set_normal(Vector3.UP); st.set_color(Color(0.2, 0.2, 0.21)); st.add_vertex(r)
+			if i > 0:
+				var base := idx + (i - 1) * 2
+				st.add_index(base); st.add_index(base + 2); st.add_index(base + 1)
+				st.add_index(base + 1); st.add_index(base + 2); st.add_index(base + 3)
+		idx += (steps + 1) * 2
+	if idx == 0:
+		return
+	var mi := MeshInstance3D.new()
+	mi.mesh = st.commit()
+	var mat := StandardMaterial3D.new(); mat.vertex_color_use_as_albedo = true; mat.roughness = 1.0
+	mi.material_override = mat
+	parent.add_child(mi)
+
+func _build_vegetation(parent: Node3D, rng_seed: int) -> void:
+	var rng := RandomNumberGenerator.new(); rng.seed = rng_seed
+	var trunk := CylinderMesh.new(); trunk.top_radius = 0.18; trunk.bottom_radius = 0.28; trunk.height = 2.2
+	var crown := CylinderMesh.new(); crown.top_radius = 0.0; crown.bottom_radius = 1.8; crown.height = 4.5
+	var tmat := StandardMaterial3D.new(); tmat.albedo_color = Color(0.38, 0.27, 0.18); trunk.material = tmat
+	var cmat := StandardMaterial3D.new(); cmat.albedo_color = Color(0.16, 0.38, 0.2); crown.material = cmat
+	var trunks := MultiMesh.new(); trunks.transform_format = MultiMesh.TRANSFORM_3D; trunks.mesh = trunk
+	var crowns := MultiMesh.new(); crowns.transform_format = MultiMesh.TRANSFORM_3D; crowns.mesh = crown
+	var transforms: Array[Transform3D] = []
+	var attempts := 9000
+	for i in range(attempts):
+		var x := rng.randf_range(MIN_X, MAX_X); var z := rng.randf_range(MIN_Z, MAX_Z)
+		var h := height_at(x, z)
+		if h < 2.0 or h > 34.0 or is_road(x, z):
+			continue
+		var n := _noise.get_noise_2d(x * 3.0, z * 3.0)
+		if n < 0.05:
+			continue
+		var near_pad := false
+		for pad in _pads:
+			if Vector2(x, -z).distance_to(pad[0]) < pad[1] * 1.2:
+				near_pad = true
+				break
+		if near_pad:
+			continue
+		var s := rng.randf_range(0.7, 1.5)
+		var t := Transform3D(Basis().rotated(Vector3.UP, rng.randf() * TAU).scaled(Vector3(s, s, s)), Vector3(x, h, z))
+		transforms.append(t)
+	trunks.instance_count = transforms.size(); crowns.instance_count = transforms.size()
+	for i in range(transforms.size()):
+		var t: Transform3D = transforms[i]
+		trunks.set_instance_transform(i, t.translated_local(Vector3(0, 1.1, 0)))
+		crowns.set_instance_transform(i, t.translated_local(Vector3(0, 4.3, 0)))
+	var mt := MultiMeshInstance3D.new(); mt.multimesh = trunks; parent.add_child(mt)
+	var mc := MultiMeshInstance3D.new(); mc.multimesh = crowns; parent.add_child(mc)

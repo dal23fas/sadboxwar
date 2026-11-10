@@ -106,6 +106,7 @@ func _build_world() -> void:
 	world_root = Node3D.new(); world_root.name = "World"; add_child(world_root)
 	terrain = EFTerrain.new(); world_root.add_child(terrain)
 	terrain.build(World.content.get("terrain", {}), World.content.get("pois", []))
+	terrain.build_dressing(world_root)
 	sky = EFSky.new(); world_root.add_child(sky)
 	var rng := RandomNumberGenerator.new(); rng.seed = 178401
 	for p in World.content.get("pois", []):
