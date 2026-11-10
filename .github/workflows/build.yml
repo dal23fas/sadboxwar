@@ -5,6 +5,7 @@ on: [push, workflow_dispatch]
 jobs:
   core:
     strategy:
+      fail-fast: false
       matrix:
         os: [windows-latest, ubuntu-latest, macos-latest]
     runs-on: ${{ matrix.os }}

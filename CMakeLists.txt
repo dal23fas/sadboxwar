@@ -12,9 +12,14 @@ option(EF_UE_COMPAT_FLAGS "Compile with -fno-exceptions -fno-rtti to mirror Unre
 file(GLOB EF_CORE_SOURCES CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/Source/EFWorldCore/Private/*.cpp)
 add_library(EFWorldCore STATIC ${EF_CORE_SOURCES})
 target_include_directories(EFWorldCore PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/Source/EFWorldCore/Public)
-target_compile_options(EFWorldCore PRIVATE -Wall -Wextra -Wpedantic -Wshadow -Wconversion -Wno-sign-conversion)
-if(EF_UE_COMPAT_FLAGS)
-  target_compile_options(EFWorldCore PUBLIC -fno-exceptions -fno-rtti)
+if(MSVC)
+  target_compile_options(EFWorldCore PRIVATE /W4 /utf-8)
+  target_compile_definitions(EFWorldCore PUBLIC _CRT_SECURE_NO_WARNINGS NOMINMAX WIN32_LEAN_AND_MEAN)
+else()
+  target_compile_options(EFWorldCore PRIVATE -Wall -Wextra -Wpedantic -Wshadow -Wconversion -Wno-sign-conversion)
+  if(EF_UE_COMPAT_FLAGS)
+    target_compile_options(EFWorldCore PUBLIC -fno-exceptions -fno-rtti)   # mirrors engine toolchain defaults
+  endif()
 endif()
 
 # ---- headless acceptance tool (runs the vertical-slice script in data form) ----
