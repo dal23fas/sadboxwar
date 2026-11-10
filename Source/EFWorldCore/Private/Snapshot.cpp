@@ -61,7 +61,7 @@ Json WorldState::toSnapshot() const {
     for (const auto& kv : vehicles_) {
         const VehicleState& v = kv.second; Json j = Json::object();
         j.set("entity_id", v.entity_id); j.set("definition_id", v.definition_id); j.set("region_id", v.region_id); j.set("home_poi_id", v.home_poi_id);
-        j.set("pose", v.pose.toJson()); j.set("condition_normalized", v.condition_normalized); j.set("fuel_normalized", v.fuel_normalized);
+        j.set("pose", v.pose.toJson()); j.set("condition_normalized", v.condition_normalized); j.set("fuel_normalized", v.fuel_normalized); j.set("altitude_agl", v.altitude_agl);
         j.set("cargo", mapIntToJson(v.cargo));
         Json seats = Json::array();
         for (const auto& sk : v.occupied_seats) { Json sj = Json::object(); sj.set("seat_id", sk.first); sj.set("occupant_entity_id", sk.second); seats.push(sj); }
@@ -163,7 +163,7 @@ Status WorldState::restoreSnapshot(const Json& s, std::vector<std::string>* warn
         v.entity_id = id; v.definition_id = j.get("definition_id").asString();
         if (!content_.vehicle_definitions.count(v.definition_id)) { warn("vehicle " + id + " has unknown definition " + v.definition_id + "; kept as placeholder"); }
         v.region_id = j.get("region_id").asString(); v.home_poi_id = j.get("home_poi_id").asString();
-        v.pose = Pose::fromJson(j.get("pose")); v.condition_normalized = j.get("condition_normalized").asNumber(1.0); v.fuel_normalized = j.get("fuel_normalized").asNumber(1.0);
+        v.pose = Pose::fromJson(j.get("pose")); v.condition_normalized = j.get("condition_normalized").asNumber(1.0); v.fuel_normalized = j.get("fuel_normalized").asNumber(1.0); v.altitude_agl = j.get("altitude_agl").asNumber(0.0);
         v.cargo = jsonToMapInt(j.get("cargo"));
         v.occupied_seats.clear();
         for (const auto& sj : j.get("occupied_seats").asArray()) v.occupied_seats[sj.get("seat_id").asString()] = sj.get("occupant_entity_id").asString();

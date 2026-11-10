@@ -6,16 +6,16 @@ EF_TEST(world01_offscreen_ticks_advance_economy_without_presentation) {
     WorldState w; EF_REQUIRE(newGame(w));
     int clinicWater = w.economyNode("economy_beacon_clinic")->stock("water_pack");
     int lyriaWater = w.economyNode("economy_port_lyria")->stock("water_pack");
-    SimulationReport rep = w.advanceTicks(30);   // 3 Tier-R steps, 0 Tier-G steps
-    EF_CHECK_EQ(rep.ticks_advanced, static_cast<Tick>(30));
+    SimulationReport rep = w.advanceTicks(540);   // 3 Tier-R steps (every 3 h), 9 Tier-G steps
+    EF_CHECK_EQ(rep.ticks_advanced, static_cast<Tick>(540));
     EF_CHECK_EQ(rep.tier_r_steps, 3);
-    EF_CHECK_EQ(rep.tier_g_steps, 0);
+    EF_CHECK_EQ(rep.tier_g_steps, 9);
     EF_CHECK_EQ(w.economyNode("economy_beacon_clinic")->stock("water_pack"), clinicWater - 3);  // consumption 1/step
     EF_CHECK_EQ(w.economyNode("economy_port_lyria")->stock("water_pack"), lyriaWater + 3);      // +2 production -1 consumption
     EF_CHECK(countEvents(w, EventType::ResourceStockChanged) > 0);
-    EF_CHECK_EQ(w.time().hour(), 8); EF_CHECK_EQ(w.time().minute(), 30);
+    EF_CHECK_EQ(w.time().hour(), 17); EF_CHECK_EQ(w.time().minute(), 0);
     // stocks never go negative, stop at zero
-    w.advanceTicks(600);
+    w.advanceTicks(3000);
     for (const auto& kv : w.economyNodes()) for (const auto& st : kv.second.stocks) EF_CHECK(st.second >= 0);
     EF_CHECK_EQ(w.economyNode("economy_beacon_clinic")->stock("medical_pack"), 0);
     // shortage news was generated from a system event and references it

@@ -260,7 +260,7 @@ Status WorldState::handle(const CmdExitVehicle&, std::vector<EventEnvelope>& out
     const VehicleState* v = vehicle(possession_.vehicle_id);
     if (!v) return Status::Fail("vehicle_not_found", possession_.vehicle_id);
     const VehicleDefinition* d = vehicleDef(possession_.vehicle_id);
-    if (d && (d->vehicle_class == VehicleClass::Rotorcraft || d->vehicle_class == VehicleClass::FixedWing) && v->pose.position.z > config_.airborne_exit_height)
+    if (d && (d->vehicle_class == VehicleClass::Rotorcraft || d->vehicle_class == VehicleClass::FixedWing) && v->altitude_agl > config_.airborne_exit_height)
         return Status::Fail("exit_unsafe_airborne", "land first");
     Pose exitPose = v->pose; exitPose.position.x += 3.0; exitPose.position.z = 0.0;
     Json pl = Json::object();
@@ -303,6 +303,7 @@ Status WorldState::handle(const CmdReportPose& c, std::vector<EventEnvelope>& ou
         regionId = v->region_id;
     }
     Json pl = Json::object(); pl.set("entity_id", c.entity_id); pl.set("pose", c.pose.toJson());
+    if (c.altitude_agl >= 0.0) pl.set("altitude_agl", c.altitude_agl);
     out.push_back(makeEvent(EventType::EntityPoseChanged, c.entity_id, regionId, pl));
     if (c.entity_id != player_.entity_id) {
         const VehicleState* v = vehicle(c.entity_id); const VehicleDefinition* d = vehicleDef(c.entity_id);
@@ -589,7 +590,7 @@ void WorldState::applyEvent(const EventEnvelope& e) {
             EntityId nearestRegion; double best = 1e300;
             for (const auto& kv : content_.pois) { double d = distance(pose.position, kv.second.pose.position); if (d < best) { best = d; nearestRegion = kv.second.region_id; } }
             if (id == player_.entity_id) { player_.pose = pose; if (!nearestRegion.empty()) player_.region_id = nearestRegion; }
-            else { auto it = vehicles_.find(id); if (it != vehicles_.end()) { it->second.pose = pose; if (!nearestRegion.empty()) it->second.region_id = nearestRegion; } }
+            else { auto it = vehicles_.find(id); if (it != vehicles_.end()) { it->second.pose = pose; it->second.altitude_agl = p.has("altitude_agl") ? p.get("altitude_agl").asNumber() : pose.position.z; if (!nearestRegion.empty()) it->second.region_id = nearestRegion; } }
             break;
         }
         case EventType::VehicleCargoChanged: {

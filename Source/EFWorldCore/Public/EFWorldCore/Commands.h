@@ -15,7 +15,7 @@ struct CmdEnterVehicle       { EntityId vehicle_id; std::string seat_id; };
 struct CmdExitVehicle        { };
 struct CmdSwitchSeat         { std::string seat_id; };
 // Presentation layer reports authoritative transform at a low rate (not every frame).
-struct CmdReportPose         { EntityId entity_id; Pose pose; };
+struct CmdReportPose         { EntityId entity_id; Pose pose; double altitude_agl = -1.0; };   // agl: height above ground if the host knows it
 // Move goods between an economy node and the player's current carrier (vehicle when seated, inventory on foot).
 struct CmdLoadCargo          { EntityId node_id; std::string item_id; int quantity = 0; };
 struct CmdDeliverCargo       { EntityId node_id; std::string item_id; int quantity = 0; };

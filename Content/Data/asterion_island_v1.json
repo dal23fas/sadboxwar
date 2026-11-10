@@ -1,7 +1,7 @@
 {
-  "content_id": "asterion_island_v1",
+  "content_id": "asterion_archipelago_v2",
   "schema_version": 1,
-  "notice": "Fictional game content for EARTH FRONTIER. Places, organizations, vehicles and quantities are invented game balance data; not a real-world model.",
+  "notice": "Fictional game content for EARTH FRONTIER: the Asterion archipelago (Asterion West, Pinewatch islet, Northshore island). Invented places, organisations, vehicles and balance values.",
   "world": {
     "id": "world_alternate_earth",
     "starting_region": "region_asterion_west",
@@ -21,7 +21,8 @@
       "economy_node_ids": [
         "economy_port_lyria",
         "economy_beacon_clinic",
-        "economy_pinewatch"
+        "economy_pinewatch",
+        "economy_ridge_mine"
       ],
       "poi_ids": [
         "poi_port_lyria",
@@ -30,7 +31,25 @@
         "poi_beacon_clinic",
         "poi_depot_south",
         "poi_pinewatch",
-        "poi_reef_survey"
+        "poi_reef_survey",
+        "poi_ridge_mine"
+      ]
+    },
+    {
+      "id": "region_northshore",
+      "name": "Northshore",
+      "control_faction_id": "faction_northshore",
+      "stability_normalized": 0.62,
+      "population_index": 28,
+      "initial_local_trust": -5,
+      "spawn_poi_id": "poi_northshore_town",
+      "economy_node_ids": [
+        "economy_northshore_town"
+      ],
+      "poi_ids": [
+        "poi_northshore_town",
+        "poi_cape_varn",
+        "poi_northshore_strip"
       ]
     }
   ],
@@ -179,7 +198,7 @@
       "region_id": "region_asterion_west",
       "pose": {
         "position": [
-          -1200,
+          -990,
           900,
           0
         ],
@@ -200,6 +219,78 @@
           -900,
           500,
           -40
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "id": "poi_ridge_mine",
+      "name": "Ridge Mine",
+      "kind": "industrial",
+      "region_id": "region_asterion_west",
+      "pose": {
+        "position": [
+          1000,
+          -600,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "id": "poi_northshore_town",
+      "name": "Northshore Town",
+      "kind": "town",
+      "region_id": "region_northshore",
+      "pose": {
+        "position": [
+          2200,
+          1500,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "id": "poi_cape_varn",
+      "name": "Cape Varn",
+      "kind": "port",
+      "region_id": "region_northshore",
+      "pose": {
+        "position": [
+          1620,
+          1280,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "id": "poi_northshore_strip",
+      "name": "Northshore Strip",
+      "kind": "airfield",
+      "region_id": "region_northshore",
+      "pose": {
+        "position": [
+          2500,
+          1750,
+          0
         ],
         "rotation": [
           0,
@@ -244,6 +335,34 @@
       "role_tag": "mechanic",
       "poi_id": "poi_depot_south",
       "faction_id": "faction_commonwealth"
+    },
+    {
+      "id": "npc_mine_foreman",
+      "name": "Foreman Dara Oakes",
+      "role_tag": "foreman",
+      "poi_id": "poi_ridge_mine",
+      "faction_id": "faction_commonwealth"
+    },
+    {
+      "id": "npc_relief_coordinator",
+      "name": "Coordinator Sela Marr",
+      "role_tag": "relief_coordinator",
+      "poi_id": "poi_port_lyria",
+      "faction_id": "faction_relief"
+    },
+    {
+      "id": "npc_northshore_envoy",
+      "name": "Envoy Rurik Halden",
+      "role_tag": "envoy",
+      "poi_id": "poi_northshore_town",
+      "faction_id": "faction_northshore"
+    },
+    {
+      "id": "npc_cape_harbor",
+      "name": "Harbor Chief Mira Voss",
+      "role_tag": "harbor_master",
+      "poi_id": "poi_cape_varn",
+      "faction_id": "faction_northshore"
     }
   ],
   "vehicle_definitions": [
@@ -269,7 +388,10 @@
         "brake_mps2": 6.0,
         "turn_rate_dps": 60,
         "offroad_grip": 0.7,
-        "height_m": 2.2
+        "height_m": 2.2,
+        "range_km": 220,
+        "refuel_cost_credits": 30,
+        "repair_cost_credits": 100
       }
     },
     {
@@ -294,7 +416,10 @@
         "brake_mps2": 7.5,
         "turn_rate_dps": 80,
         "offroad_grip": 0.9,
-        "height_m": 1.9
+        "height_m": 1.9,
+        "range_km": 220,
+        "refuel_cost_credits": 30,
+        "repair_cost_credits": 100
       }
     },
     {
@@ -322,7 +447,10 @@
         "brake_mps2": 4.0,
         "turn_rate_dps": 35,
         "offroad_grip": 1.0,
-        "height_m": 2.6
+        "height_m": 2.6,
+        "range_km": 160,
+        "refuel_cost_credits": 60,
+        "repair_cost_credits": 220
       }
     },
     {
@@ -350,7 +478,10 @@
         "brake_mps2": 3.0,
         "turn_rate_dps": 25,
         "offroad_grip": 1.0,
-        "height_m": 2.9
+        "height_m": 2.9,
+        "range_km": 160,
+        "refuel_cost_credits": 60,
+        "repair_cost_credits": 220
       }
     },
     {
@@ -374,7 +505,10 @@
         "climb_rate_mps": 6,
         "yaw_rate_dps": 60,
         "tilt_rate_dps": 40,
-        "hover_ceiling_m": 3000
+        "hover_ceiling_m": 3000,
+        "range_km": 300,
+        "refuel_cost_credits": 80,
+        "repair_cost_credits": 260
       }
     },
     {
@@ -401,7 +535,10 @@
         "climb_rate_mps": 5,
         "yaw_rate_dps": 40,
         "tilt_rate_dps": 30,
-        "hover_ceiling_m": 2600
+        "hover_ceiling_m": 2600,
+        "range_km": 300,
+        "refuel_cost_credits": 80,
+        "repair_cost_credits": 260
       }
     },
     {
@@ -425,7 +562,10 @@
         "stall_speed_mps": 25,
         "climb_rate_mps": 5,
         "roll_rate_dps": 90,
-        "pitch_rate_dps": 30
+        "pitch_rate_dps": 30,
+        "range_km": 500,
+        "refuel_cost_credits": 70,
+        "repair_cost_credits": 240
       }
     },
     {
@@ -452,7 +592,10 @@
         "stall_speed_mps": 40,
         "climb_rate_mps": 7,
         "roll_rate_dps": 35,
-        "pitch_rate_dps": 15
+        "pitch_rate_dps": 15,
+        "range_km": 500,
+        "refuel_cost_credits": 70,
+        "repair_cost_credits": 240
       }
     },
     {
@@ -476,7 +619,10 @@
         "accel_mps2": 1.2,
         "turn_rate_dps": 30,
         "draft_m": 1.0,
-        "length_m": 12
+        "length_m": 12,
+        "range_km": 260,
+        "refuel_cost_credits": 50,
+        "repair_cost_credits": 180
       }
     },
     {
@@ -503,7 +649,10 @@
         "accel_mps2": 0.25,
         "turn_rate_dps": 6,
         "draft_m": 3.5,
-        "length_m": 48
+        "length_m": 48,
+        "range_km": 260,
+        "refuel_cost_credits": 50,
+        "repair_cost_credits": 180
       }
     },
     {
@@ -532,7 +681,10 @@
         "turn_rate_dps": 12,
         "max_depth_m": 120,
         "dive_rate_mps": 1.0,
-        "length_m": 16
+        "length_m": 16,
+        "range_km": 200,
+        "refuel_cost_credits": 90,
+        "repair_cost_credits": 300
       }
     }
   ],
@@ -556,7 +708,19 @@
       "definition_id": "utility_patrol_boat_fictional",
       "region_id": "region_asterion_west",
       "home_poi_id": "poi_harbor_west",
-      "condition_normalized": 1.0
+      "condition_normalized": 1.0,
+      "pose": {
+        "position": [
+          -636,
+          150,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ]
+      }
     },
     {
       "id": "vehicle_sub_001",
@@ -566,8 +730,8 @@
       "condition_normalized": 1.0,
       "pose": {
         "position": [
-          -640,
-          170,
+          -630,
+          165,
           0
         ],
         "rotation": [
@@ -585,8 +749,8 @@
       "condition_normalized": 1.0,
       "pose": {
         "position": [
-          430,
-          -470,
+          425,
+          -475,
           0
         ],
         "rotation": [
@@ -614,6 +778,63 @@
           0
         ]
       }
+    },
+    {
+      "id": "vehicle_4x4_001",
+      "definition_id": "light_4x4_fictional",
+      "region_id": "region_asterion_west",
+      "home_poi_id": "poi_port_lyria",
+      "condition_normalized": 0.9,
+      "pose": {
+        "position": [
+          18,
+          -14,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "id": "vehicle_boat_002",
+      "definition_id": "coastal_supply_ship_fictional",
+      "region_id": "region_northshore",
+      "home_poi_id": "poi_cape_varn",
+      "condition_normalized": 1.0,
+      "pose": {
+        "position": [
+          1590,
+          1270,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "id": "vehicle_helo_002",
+      "definition_id": "helicopter_utility_fictional",
+      "region_id": "region_northshore",
+      "home_poi_id": "poi_northshore_strip",
+      "condition_normalized": 1.0,
+      "pose": {
+        "position": [
+          2520,
+          1760,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ]
+      }
     }
   ],
   "infrastructure": [
@@ -628,6 +849,18 @@
       "kind": "airfield",
       "poi_id": "poi_windfield",
       "region_id": "region_asterion_west"
+    },
+    {
+      "id": "port_cape_varn",
+      "kind": "port",
+      "poi_id": "poi_cape_varn",
+      "region_id": "region_northshore"
+    },
+    {
+      "id": "airfield_northshore_strip",
+      "kind": "airfield",
+      "poi_id": "poi_northshore_strip",
+      "region_id": "region_northshore"
     }
   ],
   "economy_nodes": [
@@ -666,9 +899,9 @@
       "region_id": "region_asterion_west",
       "poi_id": "poi_beacon_clinic",
       "stocks": {
-        "water_pack": 5,
-        "food_crate": 3,
-        "medical_pack": 2
+        "water_pack": 12,
+        "food_crate": 8,
+        "medical_pack": 5
       },
       "capacity_by_item": {
         "water_pack": 50,
@@ -691,8 +924,8 @@
       "region_id": "region_asterion_west",
       "poi_id": "poi_pinewatch",
       "stocks": {
-        "water_pack": 4,
-        "food_crate": 6
+        "water_pack": 10,
+        "food_crate": 9
       },
       "capacity_by_item": {
         "water_pack": 40,
@@ -705,6 +938,64 @@
       "consumption_per_step": {
         "water_pack": 1,
         "food_crate": 1
+      }
+    },
+    {
+      "id": "economy_ridge_mine",
+      "region_id": "region_asterion_west",
+      "poi_id": "poi_ridge_mine",
+      "stocks": {
+        "spare_parts": 30,
+        "water_pack": 6,
+        "food_crate": 5
+      },
+      "capacity_by_item": {
+        "spare_parts": 80,
+        "water_pack": 40,
+        "food_crate": 40
+      },
+      "target_stock": {
+        "spare_parts": 20,
+        "water_pack": 15,
+        "food_crate": 12
+      },
+      "production_per_step": {
+        "spare_parts": 1
+      },
+      "consumption_per_step": {
+        "water_pack": 1,
+        "food_crate": 1
+      }
+    },
+    {
+      "id": "economy_northshore_town",
+      "region_id": "region_northshore",
+      "poi_id": "poi_northshore_town",
+      "stocks": {
+        "water_pack": 15,
+        "food_crate": 10,
+        "medical_pack": 4,
+        "spare_parts": 6
+      },
+      "capacity_by_item": {
+        "water_pack": 60,
+        "food_crate": 60,
+        "medical_pack": 30,
+        "spare_parts": 40
+      },
+      "target_stock": {
+        "water_pack": 25,
+        "food_crate": 25,
+        "medical_pack": 10,
+        "spare_parts": 10
+      },
+      "production_per_step": {
+        "water_pack": 1
+      },
+      "consumption_per_step": {
+        "water_pack": 1,
+        "food_crate": 1,
+        "medical_pack": 1
       }
     }
   ],
@@ -905,13 +1196,431 @@
           "mission_harbor_link"
         ]
       }
+    },
+    {
+      "id": "mission_mine_supply",
+      "title": "Water for Ridge Mine",
+      "type": "civilian_relief",
+      "issuer_faction_id": "faction_commonwealth",
+      "region_id": "region_asterion_west",
+      "eligible_vehicle_classes": [
+        "ground",
+        "armored",
+        "rotorcraft"
+      ],
+      "objectives": [
+        {
+          "id": "obj_accept",
+          "type": "Interact",
+          "target_id": "npc_mayor_elara"
+        },
+        {
+          "id": "obj_transport",
+          "type": "TransportCargo",
+          "item_id": "water_pack",
+          "quantity": 8,
+          "destination_node_id": "economy_ridge_mine"
+        },
+        {
+          "id": "obj_debrief",
+          "type": "Interact",
+          "target_id": "npc_mine_foreman"
+        }
+      ],
+      "rewards": {
+        "credits": 110,
+        "local_trust_delta": 4,
+        "faction_reputation_delta": 2
+      },
+      "prerequisites": {
+        "required_completed_missions": [
+          "mission_road_supplies"
+        ]
+      },
+      "time_limit_ticks": 1440
+    },
+    {
+      "id": "mission_armored_escort",
+      "title": "Parts Convoy",
+      "type": "transport",
+      "issuer_faction_id": "faction_commonwealth",
+      "region_id": "region_asterion_west",
+      "eligible_vehicle_classes": [
+        "armored",
+        "ground"
+      ],
+      "objectives": [
+        {
+          "id": "obj_accept",
+          "type": "Interact",
+          "target_id": "npc_depot_mechanic"
+        },
+        {
+          "id": "obj_reach_mine",
+          "type": "ReachLocation",
+          "target_id": "poi_ridge_mine",
+          "radius": 60,
+          "required_vehicle_class": "armored",
+          "on_foot_allowed": false
+        },
+        {
+          "id": "obj_transport",
+          "type": "TransportCargo",
+          "item_id": "spare_parts",
+          "quantity": 6,
+          "destination_node_id": "economy_port_lyria"
+        },
+        {
+          "id": "obj_debrief",
+          "type": "Interact",
+          "target_id": "npc_depot_mechanic"
+        }
+      ],
+      "rewards": {
+        "credits": 200,
+        "local_trust_delta": 5,
+        "faction_reputation_delta": 3
+      },
+      "prerequisites": {
+        "required_completed_missions": [
+          "mission_mine_supply"
+        ]
+      }
+    },
+    {
+      "id": "mission_air_survey",
+      "title": "Coastal Survey",
+      "type": "survey",
+      "issuer_faction_id": "faction_relief",
+      "region_id": "region_asterion_west",
+      "eligible_vehicle_classes": [
+        "fixed_wing"
+      ],
+      "objectives": [
+        {
+          "id": "obj_accept",
+          "type": "Interact",
+          "target_id": "npc_windfield_chief"
+        },
+        {
+          "id": "obj_over_pinewatch",
+          "type": "ReachLocation",
+          "target_id": "poi_pinewatch",
+          "radius": 160,
+          "required_vehicle_class": "fixed_wing",
+          "on_foot_allowed": false
+        },
+        {
+          "id": "obj_over_reef",
+          "type": "ReachLocation",
+          "target_id": "poi_reef_survey",
+          "radius": 220,
+          "required_vehicle_class": "fixed_wing",
+          "on_foot_allowed": false
+        },
+        {
+          "id": "obj_return",
+          "type": "ReachLocation",
+          "target_id": "poi_windfield",
+          "radius": 140,
+          "required_vehicle_class": "fixed_wing",
+          "on_foot_allowed": false
+        },
+        {
+          "id": "obj_debrief",
+          "type": "Interact",
+          "target_id": "npc_windfield_chief"
+        }
+      ],
+      "rewards": {
+        "credits": 170,
+        "local_trust_delta": 3,
+        "faction_reputation_delta": 4
+      },
+      "prerequisites": {
+        "required_completed_missions": [
+          "mission_sky_relief"
+        ]
+      }
+    },
+    {
+      "id": "mission_reef_survey",
+      "title": "Tidewatch Reef Survey",
+      "type": "survey",
+      "issuer_faction_id": "faction_relief",
+      "region_id": "region_asterion_west",
+      "eligible_vehicle_classes": [
+        "submarine"
+      ],
+      "objectives": [
+        {
+          "id": "obj_accept",
+          "type": "Interact",
+          "target_id": "npc_harbor_master"
+        },
+        {
+          "id": "obj_dive",
+          "type": "ReachLocation",
+          "target_id": "poi_reef_survey",
+          "radius": 25,
+          "required_vehicle_class": "submarine",
+          "on_foot_allowed": false
+        },
+        {
+          "id": "obj_debrief",
+          "type": "Interact",
+          "target_id": "npc_harbor_master"
+        }
+      ],
+      "rewards": {
+        "credits": 180,
+        "local_trust_delta": 3,
+        "faction_reputation_delta": 3
+      },
+      "prerequisites": {
+        "required_completed_missions": [
+          "mission_harbor_link"
+        ]
+      }
+    },
+    {
+      "id": "mission_rescue_pinewatch",
+      "title": "Medevac Pinewatch",
+      "type": "rescue",
+      "issuer_faction_id": "faction_relief",
+      "region_id": "region_asterion_west",
+      "eligible_vehicle_classes": [
+        "rotorcraft"
+      ],
+      "objectives": [
+        {
+          "id": "obj_accept",
+          "type": "Interact",
+          "target_id": "npc_clinic_nurse"
+        },
+        {
+          "id": "obj_pickup",
+          "type": "ReachLocation",
+          "target_id": "poi_pinewatch",
+          "radius": 40,
+          "required_vehicle_class": "rotorcraft",
+          "on_foot_allowed": false
+        },
+        {
+          "id": "obj_dropoff",
+          "type": "ReachLocation",
+          "target_id": "poi_beacon_clinic",
+          "radius": 40,
+          "required_vehicle_class": "rotorcraft",
+          "on_foot_allowed": false
+        },
+        {
+          "id": "obj_debrief",
+          "type": "Interact",
+          "target_id": "npc_clinic_nurse"
+        }
+      ],
+      "rewards": {
+        "credits": 220,
+        "local_trust_delta": 8,
+        "faction_reputation_delta": 4
+      },
+      "prerequisites": {
+        "required_completed_missions": [
+          "mission_sky_relief"
+        ]
+      },
+      "time_limit_ticks": 720
+    },
+    {
+      "id": "mission_northshore_contact",
+      "title": "Across the Strait",
+      "type": "story",
+      "issuer_faction_id": "faction_northshore",
+      "region_id": "region_northshore",
+      "eligible_vehicle_classes": [
+        "naval",
+        "rotorcraft",
+        "fixed_wing",
+        "submarine"
+      ],
+      "objectives": [
+        {
+          "id": "obj_accept",
+          "type": "Interact",
+          "target_id": "npc_mayor_elara"
+        },
+        {
+          "id": "obj_arrive",
+          "type": "ReachLocation",
+          "target_id": "poi_northshore_town",
+          "radius": 60,
+          "required_vehicle_class": "",
+          "on_foot_allowed": true
+        },
+        {
+          "id": "obj_envoy",
+          "type": "Interact",
+          "target_id": "npc_northshore_envoy"
+        }
+      ],
+      "rewards": {
+        "credits": 100,
+        "local_trust_delta": 4,
+        "faction_reputation_delta": 5
+      },
+      "prerequisites": {
+        "required_completed_missions": [
+          "mission_road_supplies",
+          "mission_harbor_link"
+        ]
+      },
+      "campaign_flags_on_complete": {
+        "northshore_contact": "true"
+      }
+    },
+    {
+      "id": "mission_northshore_supply",
+      "title": "Food for Northshore",
+      "type": "civilian_relief",
+      "issuer_faction_id": "faction_northshore",
+      "region_id": "region_northshore",
+      "eligible_vehicle_classes": [
+        "naval",
+        "rotorcraft",
+        "fixed_wing"
+      ],
+      "objectives": [
+        {
+          "id": "obj_accept",
+          "type": "Interact",
+          "target_id": "npc_northshore_envoy"
+        },
+        {
+          "id": "obj_transport",
+          "type": "TransportCargo",
+          "item_id": "food_crate",
+          "quantity": 8,
+          "destination_node_id": "economy_northshore_town"
+        },
+        {
+          "id": "obj_debrief",
+          "type": "Interact",
+          "target_id": "npc_northshore_envoy"
+        }
+      ],
+      "rewards": {
+        "credits": 180,
+        "local_trust_delta": 6,
+        "faction_reputation_delta": 4
+      },
+      "prerequisites": {
+        "required_completed_missions": [
+          "mission_northshore_contact"
+        ]
+      }
+    },
+    {
+      "id": "mission_patrol_cape",
+      "title": "Cape Patrol",
+      "type": "patrol",
+      "issuer_faction_id": "faction_northshore",
+      "region_id": "region_northshore",
+      "eligible_vehicle_classes": [
+        "naval"
+      ],
+      "objectives": [
+        {
+          "id": "obj_accept",
+          "type": "Interact",
+          "target_id": "npc_cape_harbor"
+        },
+        {
+          "id": "obj_reef",
+          "type": "ReachLocation",
+          "target_id": "poi_reef_survey",
+          "radius": 200,
+          "required_vehicle_class": "naval",
+          "on_foot_allowed": false
+        },
+        {
+          "id": "obj_pinewatch",
+          "type": "ReachLocation",
+          "target_id": "poi_pinewatch",
+          "radius": 80,
+          "required_vehicle_class": "naval",
+          "on_foot_allowed": false
+        },
+        {
+          "id": "obj_debrief",
+          "type": "Interact",
+          "target_id": "npc_cape_harbor"
+        }
+      ],
+      "rewards": {
+        "credits": 150,
+        "local_trust_delta": 3,
+        "faction_reputation_delta": 3
+      },
+      "prerequisites": {
+        "required_completed_missions": [
+          "mission_northshore_contact"
+        ]
+      }
+    },
+    {
+      "id": "mission_mediation",
+      "title": "The Mediation",
+      "type": "story",
+      "issuer_faction_id": "faction_relief",
+      "region_id": "region_asterion_west",
+      "eligible_vehicle_classes": [
+        "naval",
+        "rotorcraft",
+        "fixed_wing",
+        "submarine",
+        "ground"
+      ],
+      "objectives": [
+        {
+          "id": "obj_accept",
+          "type": "Interact",
+          "target_id": "npc_relief_coordinator"
+        },
+        {
+          "id": "obj_envoy",
+          "type": "Interact",
+          "target_id": "npc_northshore_envoy"
+        },
+        {
+          "id": "obj_mayor",
+          "type": "Interact",
+          "target_id": "npc_mayor_elara"
+        }
+      ],
+      "rewards": {
+        "credits": 250,
+        "local_trust_delta": 5,
+        "faction_reputation_delta": 5
+      },
+      "prerequisites": {
+        "required_completed_missions": [
+          "mission_northshore_supply",
+          "mission_community_update"
+        ],
+        "min_local_trust": 15
+      },
+      "campaign_flags_on_complete": {
+        "act": "ACT_II_SHIFTING_LINES",
+        "mediation": "started"
+      }
     }
   ],
   "dialogue": {
     "npc_mayor_elara": {
       "default": "Port Lyria keeps going, one delivery at a time. Come back when you have news.",
       "offer": "You're new on Asterion. Walk the harbor, meet Kael, then report back. That's how trust starts here.",
-      "offer_trusted": "Good to see you again. I have work that needs someone the town already trusts.",
+      "offer_trusted": "Good to see you again. Ridge Mine is running dry, and Northshore has gone quiet. Pick your work.",
       "in_progress": "The task isn't finished yet. The clinic is waiting.",
       "debrief_ready": "You're back. Tell me what happened out there.",
       "locked": "Not yet. The community needs to see more of you first.",
@@ -922,21 +1631,169 @@
       "offer": "Pinewatch is cut off again. Load water at Lyria and take the boat across when the weather allows.",
       "in_progress": "Ten packs for Pinewatch. The boat is at the dock when the port is open.",
       "debrief_ready": "Pinewatch radioed in. They got the water. Well done, captain.",
-      "completed": "Fair winds. The ferry crews speak well of you."
+      "completed": "Fair winds. The ferry crews speak well of you.",
+      "offer_trusted": "Pinewatch got its water. Now the reef: take Tidewatch down to the survey site and come back with a chart."
     },
     "npc_windfield_chief": {
       "default": "Windfield tower. Keep your approach slow and your cargo strapped.",
       "offer": "Beacon Clinic is short on medical packs. Load at Lyria, fly it over, land where the cross is painted.",
       "in_progress": "Four medical packs. The helicopter is fueled. Watch the wind.",
       "debrief_ready": "Clinic confirms receipt. Clean flight.",
-      "completed": "You're on the Windfield roster now."
+      "completed": "You're on the Windfield roster now.",
+      "offer_trusted": "We need eyes on the coast. Take the Skylark over Pinewatch and the reef, then bring her home."
     },
     "npc_clinic_nurse": {
       "default": "We make do. Every crate counts here.",
-      "default_trusted": "The shelves look different since you started making runs. Thank you."
+      "default_trusted": "The shelves look different since you started making runs. Thank you.",
+      "offer": "Pinewatch has a casualty. Take the helicopter, land there, bring them straight here.",
+      "in_progress": "Pinewatch first, then straight back here. Every minute counts.",
+      "debrief_ready": "They're stable. You did that."
     },
     "npc_depot_mechanic": {
-      "default": "The truck starts, which is more than I can say for most things on this island."
+      "default": "The truck starts, which is more than I can say for most things on this island.",
+      "offer": "Ridge Mine has parts we need. Take the tracked carrier — the road past the quarry eats trucks.",
+      "in_progress": "Carrier handles like a barge. Take it slow on the climb.",
+      "debrief_ready": "Six crates of parts. Depot's back in business.",
+      "completed": "Anything with tracks, you're cleared to drive."
+    },
+    "npc_mine_foreman": {
+      "default": "Pumps run, parts wear. We trade spare parts for water and food.",
+      "debrief_ready": "Water's in the tanks. The crews thank you.",
+      "completed": "The mine owes you one."
+    },
+    "npc_relief_coordinator": {
+      "default": "The Network keeps talking to both sides. That is the whole job.",
+      "offer": "The Commonwealth and the Pact need a room and a reason. Carry a message to Envoy Halden, then back to the Mayor.",
+      "in_progress": "Halden first. Then the Mayor. Don't skip steps — this is fragile.",
+      "locked": "Not yet. Both shores need to trust you before they'll listen.",
+      "debrief_ready": "Both sides have agreed to talk. This changes everything.",
+      "completed": "A new chapter. Keep the supplies moving while they argue."
+    },
+    "npc_northshore_envoy": {
+      "default": "The Pact remembers who kept the strait open — and who didn't.",
+      "offer": "Northshore stores are thin. Eight crates of food and we talk about more than weather.",
+      "in_progress": "Eight crates. Cape Varn or the strip, either works.",
+      "debrief_ready": "Received. Northshore remembers this.",
+      "locked": "We have nothing to discuss yet.",
+      "completed": "You have the Pact's ear."
+    },
+    "npc_cape_harbor": {
+      "default": "Cape Varn. Watch the swell past the reef.",
+      "offer": "Run the patrol: reef, then Pinewatch, then home. Fishing boats keep going missing out there.",
+      "in_progress": "Reef first, then Pinewatch. Keep the radio on.",
+      "debrief_ready": "Patrol logged. Nothing missing tonight.",
+      "completed": "Cape Varn's log has your name in it."
     }
+  },
+  "terrain": {
+    "notice": "Presentation-only terrain description (heights are placeholder gameplay geometry). Core positions use z = height above sea level.",
+    "sea_level": 0.0,
+    "islands": [
+      {
+        "id": "asterion_main",
+        "center": [
+          400,
+          -50
+        ],
+        "radius": [
+          950,
+          900
+        ],
+        "height": 42,
+        "roughness": 0.55,
+        "seed": 11
+      },
+      {
+        "id": "pinewatch_islet",
+        "center": [
+          -1200,
+          900
+        ],
+        "radius": [
+          220,
+          200
+        ],
+        "height": 18,
+        "roughness": 0.4,
+        "seed": 12
+      },
+      {
+        "id": "northshore",
+        "center": [
+          2200,
+          1500
+        ],
+        "radius": [
+          620,
+          520
+        ],
+        "height": 55,
+        "roughness": 0.6,
+        "seed": 13
+      },
+      {
+        "id": "reef_shoal",
+        "center": [
+          -900,
+          500
+        ],
+        "radius": [
+          260,
+          180
+        ],
+        "height": -42,
+        "roughness": 0.3,
+        "seed": 14
+      }
+    ],
+    "roads": [
+      [
+        "poi_port_lyria",
+        "poi_depot_south"
+      ],
+      [
+        "poi_port_lyria",
+        "poi_beacon_clinic"
+      ],
+      [
+        "poi_depot_south",
+        "poi_windfield"
+      ],
+      [
+        "poi_port_lyria",
+        "poi_harbor_west"
+      ],
+      [
+        "poi_windfield",
+        "poi_ridge_mine"
+      ],
+      [
+        "poi_beacon_clinic",
+        "poi_ridge_mine"
+      ],
+      [
+        "poi_northshore_town",
+        "poi_cape_varn"
+      ],
+      [
+        "poi_northshore_town",
+        "poi_northshore_strip"
+      ]
+    ],
+    "sea_lanes": [
+      [
+        "poi_harbor_west",
+        "poi_pinewatch"
+      ],
+      [
+        "poi_harbor_west",
+        "poi_cape_varn"
+      ],
+      [
+        "poi_cape_varn",
+        "poi_pinewatch"
+      ]
+    ],
+    "sea_floor": -60.0
   }
 }

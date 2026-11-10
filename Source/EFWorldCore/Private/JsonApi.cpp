@@ -1,6 +1,8 @@
 #include "EFWorldCore/JsonApi.h"
 #include "EFWorldCore/ContentLoader.h"
 #include <cstdio>
+#include <filesystem>
+#include <chrono>
 
 namespace ef {
 
@@ -59,7 +61,7 @@ Status JsonApi::commandFromJson(const Json& j, Command& out) {
     else if (type == "EnterVehicle") out = CmdEnterVehicle{str("vehicle_id"), str("seat_id")};
     else if (type == "ExitVehicle") out = CmdExitVehicle{};
     else if (type == "SwitchSeat") out = CmdSwitchSeat{str("seat_id")};
-    else if (type == "ReportPose") out = CmdReportPose{str("entity_id"), Pose::fromJson(j.get("pose"))};
+    else if (type == "ReportPose") out = CmdReportPose{str("entity_id"), Pose::fromJson(j.get("pose")), j.get("altitude_agl").asNumber(-1.0)};
     else if (type == "LoadCargo") out = CmdLoadCargo{str("node_id"), str("item_id"), num("quantity")};
     else if (type == "DeliverCargo") out = CmdDeliverCargo{str("node_id"), str("item_id"), num("quantity")};
     else if (type == "SetVehicleCondition") out = CmdSetVehicleCondition{str("vehicle_id"), j.get("condition_normalized").asNumber(1.0), str("reason_tag")};
@@ -148,7 +150,7 @@ Json JsonApi::stateProjection(int newsCount) const {
     for (const auto& kv : world_.vehicles()) {
         const VehicleState& v = kv.second; Json vj = Json::object();
         vj.set("id", kv.first); vj.set("definition_id", v.definition_id); vj.set("region_id", v.region_id); vj.set("pose", v.pose.toJson());
-        vj.set("condition_normalized", v.condition_normalized); vj.set("fuel_normalized", v.fuel_normalized); vj.set("cargo", mapIntJson(v.cargo)); vj.set("cargo_units", v.cargoUnits(world_.content()));
+        vj.set("condition_normalized", v.condition_normalized); vj.set("fuel_normalized", v.fuel_normalized); vj.set("altitude_agl", v.altitude_agl); vj.set("cargo", mapIntJson(v.cargo)); vj.set("cargo_units", v.cargoUnits(world_.content()));
         auto d = world_.content().vehicle_definitions.find(v.definition_id);
         vj.set("vehicle_class", d == world_.content().vehicle_definitions.end() ? "unknown" : vehicleClassName(d->second.vehicle_class));
         vj.set("display_name", d == world_.content().vehicle_definitions.end() ? v.definition_id : d->second.display_name);
@@ -208,6 +210,23 @@ Json JsonApi::handle(const Json& req) {
         if (!s) return fail(id, s.code, s.message);
         ready_ = true;
         Json r = Json::object(); r.set("content_id", c.content_id); r.set("player_id", world_.player().entity_id); return ok(id, r);
+    }
+    if (op == "list_saves") {
+        Json arr = Json::array(); std::error_code ec;
+        if (std::filesystem::exists(saveDir_, ec)) {
+            for (const auto& entry : std::filesystem::directory_iterator(saveDir_, ec)) {
+                const std::string name = entry.path().filename().string();
+                if (name.size() <= 7 || name.compare(name.size() - 7, 7, ".efsave") != 0) continue;
+                Json j = Json::object(); j.set("slot", name.substr(0, name.size() - 7));
+                auto ft = std::filesystem::last_write_time(entry.path(), ec);
+                auto sys = std::chrono::time_point_cast<std::chrono::seconds>(ft - std::filesystem::file_time_type::clock::now() + std::chrono::system_clock::now());
+                j.set("modified_unix", static_cast<int64_t>(std::chrono::duration_cast<std::chrono::seconds>(sys.time_since_epoch()).count()));
+                std::string bytes; SaveSlotMeta meta; Json snap;
+                if (storage_->read(name, bytes).ok && SaveService::parseSaveDocument(bytes, meta, snap).ok) { j.set("world_tick", static_cast<int64_t>(meta.world_tick)); j.set("content_id", meta.content_id); j.set("build_label", meta.build_label); }
+                arr.push(j);
+            }
+        }
+        Json r = Json::object(); r.set("saves", arr); return ok(id, r);
     }
     if (!ready_) return fail(id, "not_initialized", "call start_new_game or load first");
     if (op == "content") return ok(id, contentProjection());

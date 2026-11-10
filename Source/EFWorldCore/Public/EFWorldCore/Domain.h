@@ -128,6 +128,7 @@ struct VehicleState {
     Pose pose;
     double condition_normalized = 1.0;
     double fuel_normalized = 1.0;
+    double altitude_agl = 0.0;      // last reported height above ground (presentation knows the terrain)
     std::map<std::string, int> cargo;                 // item -> qty
     std::map<std::string, EntityId> occupied_seats;   // seat_id -> occupant entity
     int cargoUnits(const WorldContent& c) const;
@@ -228,8 +229,8 @@ struct CampaignState {
 };
 
 struct SimulationConfig {
-    int tier_r_interval_ticks = 10;       // regional/economy step
-    int tier_g_interval_ticks = 60;       // global/weather/politics step
+    int tier_r_interval_ticks = 180;      // regional/economy step: every 3 game hours (8 steps/day)
+    int tier_g_interval_ticks = 60;       // global/weather/politics/mission-timer step: hourly
     Tick max_catchup_ticks_per_call = 7 * 24 * 60;
     double interact_radius = 30.0;
     double board_radius = 40.0;

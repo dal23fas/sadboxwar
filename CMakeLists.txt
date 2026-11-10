@@ -36,7 +36,7 @@ endif()
 # ---- tests ----
 enable_testing()
 set(EF_CONTENT_PATH "${CMAKE_CURRENT_SOURCE_DIR}/Content/Data/asterion_island_v1.json")
-foreach(t test_json test_events test_world_loop test_save_load test_simulation test_json_api test_realism)
+foreach(t test_json test_events test_world_loop test_save_load test_simulation test_json_api test_realism test_world2)
   add_executable(${t} Tests/${t}.cpp)
   target_link_libraries(${t} PRIVATE EFWorldCore)
   target_include_directories(${t} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/Tests)

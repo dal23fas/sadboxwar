@@ -19,11 +19,11 @@ EF_TEST(json_api_runs_first_contact_and_truck_loop) {
     Json a = Json::object(); a.set("content_path", EF_CONTENT_PATH);
     r = call(api, "start_new_game", a, 7);
     EF_REQUIRE(r.get("ok").asBool()); EF_CHECK_EQ(r.get("id").asInt(), static_cast<int64_t>(7));
-    EF_CHECK_EQ(r.get("result").get("content_id").asString(), std::string("asterion_island_v1"));
+    EF_CHECK_EQ(r.get("result").get("content_id").asString(), std::string("asterion_archipelago_v2"));
 
     r = call(api, "content");
-    EF_CHECK_EQ(r.get("result").get("pois").size(), static_cast<size_t>(7));
-    EF_CHECK_EQ(r.get("result").get("npcs").size(), static_cast<size_t>(5));
+    EF_CHECK_EQ(r.get("result").get("pois").size(), static_cast<size_t>(11));
+    EF_CHECK_EQ(r.get("result").get("npcs").size(), static_cast<size_t>(9));
 
     Json c = cmd("AcceptMission"); c.set("mission_id", "mission_first_contact");
     Json args = Json::object(); args.set("command", c);
@@ -55,7 +55,7 @@ EF_TEST(json_api_runs_first_contact_and_truck_loop) {
     Json t = Json::object(); t.set("ticks", 125);
     r = call(api, "advance_ticks", t);
     EF_CHECK_EQ(r.get("result").get("tick").asInt(), static_cast<int64_t>(125));
-    EF_CHECK_EQ(r.get("result").get("tier_r_steps").asInt(), static_cast<int64_t>(12));
+    EF_CHECK_EQ(r.get("result").get("tier_g_steps").asInt(), static_cast<int64_t>(2));
     EF_CHECK_EQ(call(api, "state").get("result").get("time").get("clock_text").asString(), std::string("Day 1 10:05"));
 
     Json d = Json::object(); d.set("npc_id", "npc_mayor_elara");

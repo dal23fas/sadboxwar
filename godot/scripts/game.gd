@@ -1,6 +1,6 @@
-# Game — builds the Asterion bootstrap scene from the content projection and runs the
-# on-foot / in-vehicle flow. Everything here is presentation: positions are reported to the core,
-# interactions become commands, the HUD reads projections.
+# Game — main scene. Title menu → world. Builds the Asterion archipelago from the content projection
+# (terrain, water, structures, ambient life, NPCs, vehicles) and runs the on-foot / in-vehicle flow.
+# Presentation only: positions are reported to the core, interactions become commands, the HUD reads projections.
 class_name EFGame
 extends Node3D
 
@@ -9,164 +9,189 @@ const SAVE_SLOT := "quick"
 var player: EFPlayer
 var hud: EFHud
 var realism_panel: EFRealismPanel
-var vehicles: Dictionary = {}        # vehicle_id -> Node3D
+var panels: EFPanels
+var menu: EFMainMenu
+var terrain: EFTerrain
+var sky: EFSky
+var ambient: EFAmbient
+var world_root: Node3D
+var vehicles: Dictionary = {}        # vehicle_id -> EFVehicle
 var npc_markers: Dictionary = {}     # npc_id -> Node3D
 var poi_markers: Dictionary = {}     # poi_id -> Node3D
-var possessed: EFVehicle = null      # vehicle node when seated
-var paused := false
+var possessed: EFVehicle = null
+var in_world := false
+var smoke := false
 
 func _ready() -> void:
+	smoke = "--smoke" in OS.get_cmdline_user_args()
 	hud = EFHud.new(); add_child(hud)
 	realism_panel = EFRealismPanel.new(); hud.add_child(realism_panel)
+	panels = EFPanels.new(); panels.process_mode = Node.PROCESS_MODE_ALWAYS; add_child(panels)
+	panels.save_requested.connect(func(slot): _save(slot))
+	panels.load_requested.connect(func(slot): _load(slot))
+	panels.settings_requested.connect(func(): realism_panel.toggle())
+	panels.main_menu_requested.connect(_to_main_menu)
+	panels.quit_requested.connect(func(): get_tree().quit())
 	World.world_event.connect(_on_world_event)
 	World.state_updated.connect(_on_state_updated)
-	hud.show_status("Connecting to EFWorldCore…")
 	var c: Dictionary = World.connect_backend()
-	if not c.get("ok", false) and "--smoke" in OS.get_cmdline_user_args():
-		print("SMOKE FAIL: core not available: %s" % c.get("reason", "?"))
-		get_tree().quit(1)
-		return
 	if not c.get("ok", false):
-		hud.show_fatal("CORE NOT AVAILABLE — %s\n\nStart the dev server first, then press F5 / restart the scene:\n  Windows:  build\\Release\\ef_server.exe   (or build\\ef_server.exe)\n  Linux/macOS:  ./build/ef_server\n\nBuild it once with:  cmake -S . -B build && cmake --build build --config Release\nOr build the GDExtension (Source/EFGodot) so no server is needed." % c.get("reason", "?"))
-		print("[Game] core not available: ", c.get("reason", "?"))
-		set_process_unhandled_input(true)
+		if smoke:
+			print("SMOKE FAIL: core not available: %s" % c.get("reason", "?"))
+			get_tree().quit(1)
+			return
+		hud.show_fatal("CORE NOT AVAILABLE — %s\n\nThis build needs the EFWorldCore library (GDExtension) or the dev server:\n  run build\\ef_server.exe (Windows) / ./build/ef_server, then press F5 here to retry.\nSee README.md." % c.get("reason", "?"))
 		return
-	_on_world_connected(c["backend"])
-
-func _retry_connect() -> void:
-	var c: Dictionary = World.connect_backend()
-	if c.get("ok", false):
-		hud.hide_fatal()
-		_on_world_connected(c["backend"])
-	else:
-		hud.toast("still no core: %s" % c.get("reason", "?"))
-
-func _on_world_connected(backend: String) -> void:
-	var content_path := "res://data/asterion_island_v1.json"      # exported builds / CI carry a copy of Content/Data here
-	var presets_path := "res://data/realism_presets_v1.json"
-	if not FileAccess.file_exists(content_path):
-		content_path = ProjectSettings.globalize_path("res://").path_join("../Content/Data/asterion_island_v1.json")
-		presets_path = ProjectSettings.globalize_path("res://").path_join("../Content/Data/realism_presets_v1.json")
-	if not World.start_new_game(content_path, presets_path):
-		hud.show_fatal("start_new_game failed (see Output)")
-		return
-	hud.show_status("")
-	hud.toast("Core: %s · content %s" % [backend, World.content.get("content_id", "?")])
-	_build_environment()
-	_build_pois()
-	_build_npcs()
-	_build_vehicles()
-	_spawn_player()
-	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
-	if "--smoke" in OS.get_cmdline_user_args():
+	World.load_presets_only()
+	if smoke:
+		_start_new_game()
 		var t := EFSmokeTest.new(self)
 		add_child(t)
 		t.run()
+	else:
+		_show_main_menu()
 
-# ---------------------------------------------------------------- scene construction (placeholder meshes)
-func _build_environment() -> void:
-	var sun := DirectionalLight3D.new(); sun.rotation_degrees = Vector3(-50, 30, 0); sun.shadow_enabled = true; add_child(sun)
-	var env := WorldEnvironment.new(); var e := Environment.new()
-	e.background_mode = Environment.BG_SKY; e.sky = Sky.new(); e.sky.sky_material = ProceduralSkyMaterial.new()
-	e.ambient_light_source = Environment.AMBIENT_SOURCE_SKY
-	env.environment = e; add_child(env)
-	# land: big flat slab; sea: blue plane to the west/north where the harbour, reef and Pinewatch are
-	_add_slab(Vector3(400, -0.5, 0), Vector3(3200, 1, 3200), Color(0.36, 0.45, 0.30), true)
-	_add_slab(Vector3(-1400, -0.6, -300), Vector3(2000, 1, 3400), Color(0.12, 0.30, 0.48), false)
-	# Windfield runway (core (400,-500) -> godot (400, 0, 500)), along x
-	_add_slab(Vector3(400, -0.44, 500), Vector3(700, 0.12, 30), Color(0.3, 0.3, 0.32), false)
-	# Harbour West quay and Depot South apron
-	_add_slab(Vector3(-560, -0.44, -150), Vector3(80, 0.12, 60), Color(0.45, 0.42, 0.4), false)
-	_add_slab(Vector3(100, -0.44, 250), Vector3(90, 0.12, 70), Color(0.3, 0.3, 0.32), false)
-	# a few blocks so the town reads as a town
-	for i in range(6):
-		_add_slab(Vector3(-25 + i * 10, 3, 20 + (i % 2) * 14), Vector3(7, 6, 7), Color(0.72, 0.68, 0.6), true)
+# ---------------------------------------------------------------- menu flow
+func _show_main_menu() -> void:
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	menu = EFMainMenu.new()
+	hud.add_child(menu)
+	menu.new_game.connect(_menu_new_game)
+	menu.load_slot.connect(_menu_load_slot)
+	menu.open_settings.connect(func(): realism_panel.toggle())
+	menu.quit_game.connect(func(): get_tree().quit())
 
-func _add_slab(pos: Vector3, size: Vector3, color: Color, solid: bool) -> void:
-	var body := StaticBody3D.new(); body.position = pos
-	var mesh := MeshInstance3D.new(); var box := BoxMesh.new(); box.size = size; mesh.mesh = box
-	var mat := StandardMaterial3D.new(); mat.albedo_color = color; mesh.material_override = mat
-	body.add_child(mesh)
-	if solid:
-		var col := CollisionShape3D.new(); var shape := BoxShape3D.new(); shape.size = size; col.shape = shape; body.add_child(col)
-	add_child(body)
+func _menu_new_game() -> void:
+	_close_menu()
+	_start_new_game()
+
+func _menu_load_slot(slot: String) -> void:
+	_close_menu()
+	_start_new_game()
+	_load(slot)
+
+func _close_menu() -> void:
+	if menu != null:
+		menu.queue_free()
+		menu = null
+
+func _to_main_menu() -> void:
+	panels.close_all()
+	_teardown_world()
+	_show_main_menu()
+
+func _start_new_game() -> void:
+	_teardown_world()
+	if not World.start_new_game():
+		hud.show_fatal("start_new_game failed (see Output)")
+		return
+	_build_world()
+	in_world = true
+	hud.show_status("")
+	hud.toast("Core: %s · %s · %d missions" % [World.backend, World.content.get("content_id", "?"), World.state.get("missions", []).size()])
+	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+
+func _teardown_world() -> void:
+	in_world = false
+	possessed = null
+	if world_root != null:
+		world_root.queue_free()
+		world_root = null
+	vehicles.clear(); npc_markers.clear(); poi_markers.clear()
+	player = null; terrain = null; sky = null; ambient = null
+	World.set_pose_provider(Callable())
+
+# ---------------------------------------------------------------- scene construction
+func _build_world() -> void:
+	world_root = Node3D.new(); world_root.name = "World"; add_child(world_root)
+	terrain = EFTerrain.new(); world_root.add_child(terrain)
+	terrain.build(World.content.get("terrain", {}), World.content.get("pois", []))
+	sky = EFSky.new(); world_root.add_child(sky)
+	var rng := RandomNumberGenerator.new(); rng.seed = 178401
+	for p in World.content.get("pois", []):
+		EFStructures.build_poi(world_root, p, terrain, rng)
+		var pos: Vector3 = World.to_godot(p["pose"]["position"])
+		var m := Node3D.new(); m.name = "POI_" + p["id"]; m.position = Vector3(pos.x, _ground(pos.x, pos.z, pos.y), pos.z)
+		m.add_child(_label(p["name"] + "\n[" + p["kind"] + "]", 9.0))
+		world_root.add_child(m); poi_markers[p["id"]] = m
+	for n in World.content.get("npcs", []):
+		var base: Vector3 = World.to_godot(n["pose"]["position"])
+		var idx := npc_markers.size()
+		var pos := base + Vector3(6 + (idx % 3) * 3, 0, 6 - (idx % 2) * 4)
+		pos.y = terrain.height_at(pos.x, pos.z)
+		var m := Node3D.new(); m.position = pos; m.name = "NPC_" + n["id"]
+		_humanoid(m, Color(0.85, 0.35, 0.3) if n.get("faction_id", "") == "faction_commonwealth" else (Color(0.3, 0.45, 0.85) if n.get("faction_id", "") == "faction_northshore" else Color(0.9, 0.9, 0.9)))
+		m.add_child(_label(n["name"], 2.4))
+		m.set_meta("npc_id", n["id"]); m.set_meta("npc_name", n["name"])
+		world_root.add_child(m); npc_markers[n["id"]] = m
+	for v in World.state.get("vehicles", []):
+		var node := EFVehicle.new(); node.name = "VEH_" + v["id"]; node.terrain = terrain
+		world_root.add_child(node)
+		node.setup(v, World.vehicle_definition(v["definition_id"]))
+		vehicles[v["id"]] = node
+	ambient = EFAmbient.new(); world_root.add_child(ambient); ambient.build(World.content, terrain)
+	player = EFPlayer.new(); player.name = "Player"; player.game = self; world_root.add_child(player)
+	var sp: Vector3 = World.to_godot(World.state["player"]["pose"]["position"]) + Vector3(0, 0, 8)
+	sp.y = terrain.height_at(sp.x, sp.z) + 1.0
+	player.global_position = sp
+	player.make_current()
+	World.set_pose_provider(_pose_provider)
+
+func _ground(x: float, z: float, fallback: float) -> float:
+	return terrain.height_at(x, z) if terrain != null else fallback
 
 func _label(text: String, height: float) -> Label3D:
 	var l := Label3D.new(); l.text = text; l.position.y = height; l.font_size = 48; l.pixel_size = 0.02
 	l.billboard = BaseMaterial3D.BILLBOARD_ENABLED; l.no_depth_test = true
 	return l
 
-func _build_pois() -> void:
-	for p in World.content.get("pois", []):
-		var pos: Vector3 = World.to_godot(p["pose"]["position"])
-		var m := Node3D.new(); m.position = pos; m.name = "POI_" + p["id"]
-		var mesh := MeshInstance3D.new(); var cyl := CylinderMesh.new(); cyl.top_radius = 6; cyl.bottom_radius = 6; cyl.height = 0.3
-		mesh.mesh = cyl; var mat := StandardMaterial3D.new(); mat.albedo_color = Color(0.9, 0.75, 0.3, 1); mesh.material_override = mat
-		m.add_child(mesh); m.add_child(_label(p["name"] + "\n[" + p["kind"] + "]", 8))
-		add_child(m); poi_markers[p["id"]] = m
-
-func _build_npcs() -> void:
-	for n in World.content.get("npcs", []):
-		var pos: Vector3 = World.to_godot(n["pose"]["position"]) + Vector3(4, 0, 4)
-		var m := Node3D.new(); m.position = pos; m.name = "NPC_" + n["id"]
-		var mesh := MeshInstance3D.new(); var cap := CapsuleMesh.new(); cap.radius = 0.35; cap.height = 1.8; mesh.mesh = cap; mesh.position.y = 0.9
-		var mat := StandardMaterial3D.new(); mat.albedo_color = Color(0.85, 0.35, 0.3); mesh.material_override = mat
-		m.add_child(mesh); m.add_child(_label(n["name"], 2.4))
-		m.set_meta("npc_id", n["id"]); m.set_meta("npc_name", n["name"])
-		add_child(m); npc_markers[n["id"]] = m
-
-func _build_vehicles() -> void:
-	for v in World.state.get("vehicles", []):
-		var node := EFVehicle.new(); node.name = "VEH_" + v["id"]
-		add_child(node)
-		node.setup(v, World.vehicle_definition(v["definition_id"]))
-		vehicles[v["id"]] = node
-
-func _spawn_player() -> void:
-	player = EFPlayer.new(); player.name = "Player"
-	add_child(player)
-	player.position = World.to_godot(World.state["player"]["pose"]["position"]) + Vector3(0, 1.2, 6)
-	player.game = self
-	World.set_pose_provider(_pose_provider)
-	player.make_current()
+func _humanoid(parent: Node3D, color: Color) -> void:
+	var mat := StandardMaterial3D.new(); mat.albedo_color = color
+	var body := MeshInstance3D.new(); var cm := CapsuleMesh.new(); cm.radius = 0.28; cm.height = 1.1; body.mesh = cm; body.position.y = 1.0; body.material_override = mat; parent.add_child(body)
+	var head := MeshInstance3D.new(); var sm := SphereMesh.new(); sm.radius = 0.16; sm.height = 0.32; head.mesh = sm; head.position.y = 1.72
+	var skin := StandardMaterial3D.new(); skin.albedo_color = Color(0.85, 0.7, 0.58); head.material_override = skin; parent.add_child(head)
+	for x in [-0.12, 0.12]:
+		var leg := MeshInstance3D.new(); var lm := CapsuleMesh.new(); lm.radius = 0.09; lm.height = 0.7; leg.mesh = lm; leg.position = Vector3(x, 0.35, 0)
+		var lmat := StandardMaterial3D.new(); lmat.albedo_color = color.darkened(0.4); leg.material_override = lmat; parent.add_child(leg)
 
 # ---------------------------------------------------------------- pose reporting (presentation -> domain, 4 Hz)
 func _pose_provider():
 	if possessed != null:
-		return {"entity_id": possessed.vehicle_id, "position": possessed.global_position, "yaw_deg": possessed.rotation_degrees.y}
+		var agl: float = possessed.global_position.y - terrain.height_at(possessed.global_position.x, possessed.global_position.z)
+		return {"entity_id": possessed.vehicle_id, "position": possessed.global_position, "yaw_deg": possessed.rotation_degrees.y, "agl": max(0.0, agl)}
 	if player != null:
-		return {"entity_id": "player_main", "position": player.global_position, "yaw_deg": player.rotation_degrees.y}
+		return {"entity_id": "player_main", "position": player.global_position, "yaw_deg": player.rotation_degrees.y, "agl": 0.0}
 	return null
 
 # ---------------------------------------------------------------- interaction helpers used by player/vehicle
 func nearest_npc(from: Vector3, radius: float) -> Node3D:
 	var best: Node3D = null; var best_d := radius
 	for n in npc_markers.values():
-		var d := from.distance_to(n.global_position)
+		var d: float = from.distance_to(n.global_position)
 		if d < best_d:
-			best_d = d
-			best = n
+			best_d = d; best = n
 	return best
 
 func nearest_vehicle(from: Vector3, radius: float) -> EFVehicle:
 	var best: EFVehicle = null; var best_d := radius
 	for v in vehicles.values():
-		var d := from.distance_to(v.global_position)
+		var d: float = from.distance_to(v.global_position)
 		if d < best_d:
-			best_d = d
-			best = v
+			best_d = d; best = v
 	return best
 
 func nearest_poi_id(from: Vector3, radius: float) -> String:
 	var best := ""; var best_d := radius
 	for id in poi_markers.keys():
-		var d := from.distance_to(poi_markers[id].global_position)
+		var pm: Node3D = poi_markers[id]
+		var d: float = Vector2(from.x, from.z).distance_to(Vector2(pm.global_position.x, pm.global_position.z))
 		if d < best_d:
-			best_d = d
-			best = id
+			best_d = d; best = id
 	return best
 
 func try_interact_npc(npc_node: Node3D) -> void:
+	if npc_node == null:
+		return
 	var npc_id: String = npc_node.get_meta("npc_id")
 	var r := World.interact_npc(npc_id)
 	if not r.get("ok", false):
@@ -204,31 +229,19 @@ func try_exit_vehicle() -> void:
 	var v: EFVehicle = possessed
 	possessed = null
 	v.unpossess()
-	player.global_position = World.to_godot(World.state["player"]["pose"]["position"]) + Vector3(0, 1.0, 0)
+	var p: Vector3 = World.to_godot(World.state["player"]["pose"]["position"])
+	p.y = max(terrain.height_at(p.x, p.z), 0.0) + 1.0
+	player.global_position = p
 	player.visible = true; player.set_physics_process(true); player.set_process_unhandled_input(true)
 	player.make_current()
 
-func cargo_action(item_index: int, deliver: bool) -> void:
-	var at: Vector3 = possessed.global_position if possessed != null else player.global_position
-	var poi_id := nearest_poi_id(at, 40.0)
-	var node_id: String = World.economy_node_at_poi(poi_id) if poi_id != "" else ""
-	if node_id == "":
-		hud.toast("No facility in range")
+func try_service(repair: bool) -> void:
+	var v: EFVehicle = possessed if possessed != null else nearest_vehicle(player.global_position, 8.0)
+	if v == null:
+		hud.toast("No vehicle nearby")
 		return
-	var items: Array = World.content.get("items", [])
-	if item_index >= items.size():
-		return
-	var item_id: String = items[item_index]["id"]
-	var r: Dictionary
-	if deliver:
-		var carried := _carried_quantity(item_id)
-		if carried <= 0:
-			hud.toast("Nothing to deliver (%s)" % item_id)
-			return
-		r = World.deliver_cargo(node_id, item_id, carried)
-	else:
-		r = World.load_cargo(node_id, item_id, 1)
-	hud.toast(("Delivered " if deliver else "Loaded ") + item_id if r.get("ok", false) else "%s: %s" % [r.get("code", ""), r.get("message", "")])
+	var r: Dictionary = World.repair_vehicle(v.vehicle_id) if repair else World.refuel_vehicle(v.vehicle_id)
+	hud.toast(("Repaired " if repair else "Refuelled ") + v.display_name if r.get("ok", false) else "%s: %s" % [r.get("code", ""), r.get("message", "")])
 
 func item_index(item_id: String) -> int:
 	var items: Array = World.content.get("items", [])
@@ -244,6 +257,30 @@ func cargo_prompt() -> String:
 		parts.append("[%d] %s" % [i + 1, items[i].get("label", items[i].get("id", ""))])
 	return "Load: " + " · ".join(parts) + "   [R] Deliver carried"
 
+func service_prompt() -> String:
+	return "[T] Refuel · [G] Repair"
+
+func cargo_action(item_index: int, deliver: bool) -> void:
+	var at: Vector3 = possessed.global_position if possessed != null else player.global_position
+	var poi_id := nearest_poi_id(at, 40.0)
+	var node_id: String = World.economy_node_at_poi(poi_id) if poi_id != "" else ""
+	if node_id == "":
+		hud.toast("No facility in range")
+		return
+	var items: Array = World.content.get("items", [])
+	if item_index < 0 or item_index >= items.size():
+		return
+	var item_id: String = items[item_index]["id"]
+	var r: Dictionary
+	if deliver:
+		var carried := _carried_quantity(item_id)
+		if carried <= 0:
+			return
+		r = World.deliver_cargo(node_id, item_id, carried)
+	else:
+		r = World.load_cargo(node_id, item_id, 1)
+	hud.toast(("Delivered " if deliver else "Loaded ") + items[item_index].get("label", item_id) if r.get("ok", false) else "%s: %s" % [r.get("code", ""), r.get("message", "")])
+
 func _carried_quantity(item_id: String) -> int:
 	if possessed != null:
 		return int(World.vehicle_state(possessed.vehicle_id).get("cargo", {}).get(item_id, 0))
@@ -253,37 +290,57 @@ func _carried_quantity(item_id: String) -> int:
 func _on_world_event(event_type: String, _event_id: String, payload: Dictionary) -> void:
 	match event_type:
 		"MissionCompleted": hud.toast("Mission complete: %s (+%d credits)" % [payload.get("title", ""), int(payload.get("credits", 0))])
+		"MissionGenerated": hud.toast("New request on the board: %s" % payload.get("template", {}).get("title", ""))
+		"MissionFailed": hud.toast("Mission %s: %s" % [payload.get("mission_id", ""), payload.get("reason", "")])
 		"WorldNewsPublished": hud.toast("NEWS: %s" % payload.get("headline", ""))
 		"WeatherChanged": hud.toast("Weather: %s" % payload.get("new", ""))
 		"InfrastructureStatusChanged": hud.toast("%s is now %s" % [payload.get("infrastructure_id", ""), payload.get("new_status", "")])
+		"CampaignFlagChanged":
+			if payload.get("flag", "") == "act":
+				hud.toast("CAMPAIGN: %s" % payload.get("new", "").replace("_", " "))
 
 func _on_state_updated(state: Dictionary) -> void:
+	if not in_world:
+		return
 	for v in state.get("vehicles", []):
 		if vehicles.has(v["id"]) and vehicles[v["id"]] != possessed:
-			vehicles[v["id"]].sync_from_state(v)     # non-possessed vehicles follow authoritative poses
+			vehicles[v["id"]].sync_from_state(v)
+
+func _process(_delta: float) -> void:
+	if in_world and sky != null:
+		sky.follow(possessed.global_position if possessed != null else player.global_position)
 
 # ---------------------------------------------------------------- global input
 func _unhandled_input(event: InputEvent) -> void:
 	if World.backend == "":
 		if event.is_action_pressed("quick_save"):
-			_retry_connect()
+			var c: Dictionary = World.connect_backend()
+			if c.get("ok", false):
+				hud.hide_fatal()
+				World.load_presets_only()
+				_show_main_menu()
 		return
-	if event.is_action_pressed("quick_save"):
-		var r := World.save_game(SAVE_SLOT)
-		hud.toast("Saved" if r.get("ok", false) else "Save failed: %s" % r.get("message", ""))
-	elif event.is_action_pressed("quick_load"):
-		var r := World.load_game(SAVE_SLOT)
-		if r.get("ok", false):
-			_apply_loaded_state()
-			hud.toast("Loaded (tick %d)%s" % [int(r["result"].get("world_tick", 0)), "" if r["result"].get("warnings", []).is_empty() else " with warnings"])
+	if not in_world:
+		if event.is_action_pressed("settings_realism"):
+			realism_panel.toggle()
+		return
+	if event.is_action_pressed("pause"):
+		if realism_panel.visible:
+			realism_panel.toggle()
 		else:
-			hud.toast("Load failed: %s" % r.get("code", ""))
+			panels.toggle_pause()
+	elif event.is_action_pressed("mission_journal"):
+		panels.toggle_journal()
+	elif event.is_action_pressed("world_map"):
+		panels.toggle_map()
+	elif event.is_action_pressed("quick_save"):
+		_save(SAVE_SLOT)
+	elif event.is_action_pressed("quick_load"):
+		_load(SAVE_SLOT)
 	elif event.is_action_pressed("debug_overlay"):
 		hud.toggle_debug()
 	elif event.is_action_pressed("settings_realism"):
 		realism_panel.toggle()
-	elif event.is_action_pressed("pause"):
-		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED else Input.MOUSE_MODE_CAPTURED
 	elif event.is_action_pressed("enter_exit_vehicle"):
 		if possessed != null:
 			try_exit_vehicle()
@@ -291,20 +348,39 @@ func _unhandled_input(event: InputEvent) -> void:
 			var v: EFVehicle = nearest_vehicle(player.global_position, 8.0)
 			if v != null:
 				try_enter_vehicle(v)
+	elif event.is_action_pressed("refuel"):
+		try_service(false)
+	elif event.is_action_pressed("repair"):
+		try_service(true)
 	elif event.is_action_pressed("cargo_deliver"):
-		for i in range(4):
-			if _carried_quantity(World.content["items"][i]["id"]) > 0:
+		var items: Array = World.content.get("items", [])
+		for i in range(min(4, items.size())):
+			if _carried_quantity(items[i]["id"]) > 0:
 				cargo_action(i, true)
 	else:
 		for i in range(4):
 			if event.is_action_pressed("cargo_%d" % (i + 1)):
 				cargo_action(i, false)
 
+func _save(slot: String) -> void:
+	var r := World.save_game(slot)
+	hud.toast("Saved to %s" % slot if r.get("ok", false) else "Save failed: %s" % r.get("message", ""))
+
+func _load(slot: String) -> void:
+	var r := World.load_game(slot)
+	if r.get("ok", false):
+		_apply_loaded_state()
+		panels.close_all()
+		hud.toast("Loaded %s (tick %d)%s" % [slot, int(r["result"].get("world_tick", 0)), "" if r["result"].get("warnings", []).is_empty() else " with warnings"])
+	else:
+		hud.toast("Load failed: %s" % r.get("code", ""))
+
 func _apply_loaded_state() -> void:
-	# Rebuild presentation from the authoritative snapshot (TDD §10: presentation actors are disposable).
+	# Rebuild presentation from the authoritative snapshot (presentation actors are disposable).
 	var st := World.state
 	for v in st.get("vehicles", []):
-		if vehicles.has(v["id"]): vehicles[v["id"]].sync_from_state(v)
+		if vehicles.has(v["id"]):
+			vehicles[v["id"]].sync_from_state(v)
 	var seated: bool = st["possession"]["mode"] == "seated"
 	if possessed != null and (not seated or possessed.vehicle_id != st["possession"]["vehicle_id"]):
 		possessed.unpossess(); possessed = null
@@ -314,5 +390,7 @@ func _apply_loaded_state() -> void:
 		player.visible = false; player.set_physics_process(false); player.set_process_unhandled_input(false)
 		possessed.possess(player)
 	if possessed == null:
-		player.global_position = World.to_godot(st["player"]["pose"]["position"]) + Vector3(0, 1.0, 0)
+		var p: Vector3 = World.to_godot(st["player"]["pose"]["position"])
+		p.y = max(terrain.height_at(p.x, p.z), 0.0) + 1.0
+		player.global_position = p
 		player.make_current()

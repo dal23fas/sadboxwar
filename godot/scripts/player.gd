@@ -66,6 +66,9 @@ func _physics_process(delta: float) -> void:
 	elif Input.is_action_just_pressed("jump"):
 		velocity.y = JUMP
 	move_and_slide()
+	if global_position.y < -0.5:
+		global_position.y = -0.5           # placeholder: no swimming yet, keep head above water
+		velocity.y = max(velocity.y, 0.0)
 	_update_prompt()
 
 func _update_prompt() -> void:
@@ -79,5 +82,7 @@ func _update_prompt() -> void:
 		lines.append("[X] Board %s" % veh.display_name)
 	if poi != "" and World.economy_node_at_poi(poi) != "":
 		lines.append(game.cargo_prompt())
+	if veh != null and poi != "" and World.poi(poi).get("kind", "") in ["depot", "airfield", "port", "town"]:
+		lines.append(game.service_prompt())
 	game.hud.set_prompt("\n".join(lines))
 	game.hud.set_stamina(stamina)

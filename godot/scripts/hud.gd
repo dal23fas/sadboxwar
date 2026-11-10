@@ -83,7 +83,7 @@ func _on_state(st: Dictionary) -> void:
 					if o["type"] == "Interact": desc = "Talk to %s" % _npc_name(o.get("target_id", ""))
 					else: desc = "Deliver %d x %s to %s (%d done)" % [int(o.get("quantity", 0)), o.get("item_id", ""), o.get("destination_node_id", ""), int(m.get("delivered_quantity", 0))]
 					lines.append("▶ %s: %s" % [m.get("title", ""), desc])
-	if lines.is_empty(): lines.append("No active mission — talk to an NPC")
+	if lines.is_empty(): lines.append("No active mission — talk to an NPC or open the journal [J]")
 	mission_label.text = "\n".join(lines)
 	var news := []
 	var arr: Array = st.get("news", [])

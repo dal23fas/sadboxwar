@@ -21,12 +21,21 @@ func check(cond: bool, what: String) -> void:
 
 func teleport_player(poi_id: String, offset := Vector3(2, 1, 2)) -> void:
 	var p: Vector3 = World.to_godot(World.poi(poi_id)["pose"]["position"]) + offset
+	p.y = max(game.terrain.height_at(p.x, p.z), 0.0) + offset.y
+	_place(p)
+
+func teleport_to_npc(npc_id: String) -> void:
+	var n: Node3D = game.npc_markers[npc_id]
+	_place(n.global_position + Vector3(1.5, 0.5, 0))
+
+func _place(p: Vector3) -> void:
 	if game.possessed != null:
 		game.possessed.global_position = p
-		World.report_pose(game.possessed.vehicle_id, p, 0.0)
+		var agl: float = p.y - game.terrain.height_at(p.x, p.z)
+		World.report_pose(game.possessed.vehicle_id, p, 0.0, max(0.0, agl))
 	else:
 		game.player.global_position = p
-		World.report_pose("player_main", p, 0.0)
+		World.report_pose("player_main", p, 0.0, 0.0)
 	World.refresh_state()
 
 func mission_status(id: String) -> String:
@@ -50,8 +59,10 @@ func run() -> void:
 	check(game.player != null and game.vehicles.size() >= 6, "scene built: player + %d vehicles" % game.vehicles.size())
 	check(World.state.get("time", {}).get("clock_text", "") == "Day 1 08:00", "clock starts Day 1 08:00")
 
+	check(game.terrain != null and game.terrain.height_at(0.0, 0.0) > 1.0, "terrain built: Port Lyria pad at %.1f m" % game.terrain.height_at(0.0, 0.0))
+	check(game.terrain.height_at(-1500.0, 0.0) < 0.0, "open sea below sea level")
 	# --- First Contact on foot
-	teleport_player("poi_port_lyria", Vector3(4, 1, 4))
+	teleport_to_npc("npc_mayor_elara")
 	var npc: Node3D = game.nearest_npc(game.player.global_position, 4.0)
 	check(npc != null and npc.get_meta("npc_id") == "npc_mayor_elara", "mayor in interact range")
 	game.try_interact_npc(npc)
@@ -59,9 +70,9 @@ func run() -> void:
 	game.hud.accept_offered_mission()
 	await game.get_tree().process_frame
 	check(mission_status("mission_first_contact") == "Active", "First Contact accepted")
-	teleport_player("poi_harbor_west", Vector3(4, 1, 4))
+	teleport_to_npc("npc_harbor_master")
 	game.try_interact_npc(game.nearest_npc(game.player.global_position, 4.0))
-	teleport_player("poi_port_lyria", Vector3(4, 1, 4))
+	teleport_to_npc("npc_mayor_elara")
 	game.try_interact_npc(game.nearest_npc(game.player.global_position, 4.0))
 	check(mission_status("mission_first_contact") == "Completed", "First Contact completed")
 	check(int(World.state["player"]["credits"]) == 70, "credits 70 after first mission (got %d)" % int(World.state["player"]["credits"]))
@@ -96,6 +107,7 @@ func run() -> void:
 	teleport_player("poi_port_lyria")
 	game.try_exit_vehicle()
 	check(game.possessed == null and game.player.visible, "exited truck")
+	teleport_to_npc("npc_mayor_elara")
 	game.try_interact_npc(game.nearest_npc(game.player.global_position, 4.0))
 	check(mission_status("mission_road_supplies") == "Completed", "Road Supplies completed")
 	check(int(World.state["player"]["credits"]) == 190, "credits 190 (got %d)" % int(World.state["player"]["credits"]))
@@ -103,10 +115,10 @@ func run() -> void:
 	# --- helicopter, boat, submarine, plane, tracked: board, run the controller, exit
 	for vid in ["vehicle_helo_001", "vehicle_boat_001", "vehicle_sub_001", "vehicle_plane_001", "vehicle_tracked_001"]:
 		var v: EFVehicle = game.vehicles.get(vid)
-		game.player.global_position = v.global_position + Vector3(3, 1, 0)
-		World.report_pose("player_main", game.player.global_position, 0.0)
+		_place(v.global_position + Vector3(3, 1, 0))
 		game.try_enter_vehicle(v)
 		check(game.possessed == v, "boarded %s" % vid)
+		var y0: float = v.global_position.y
 		Input.action_press("accelerate")
 		Input.action_press("vehicle_up")
 		for i in range(120):
@@ -115,21 +127,45 @@ func run() -> void:
 		Input.action_release("vehicle_up")
 		check(is_finite(v.global_position.x) and is_finite(v.global_position.y), "%s position finite" % vid)
 		if v.vehicle_class == "rotorcraft":
-			check(v.global_position.y > 0.5, "helicopter climbed (y=%.1f)" % v.global_position.y)
+			check(v.global_position.y > y0 + 2.0, "helicopter climbed (%.1f -> %.1f)" % [y0, v.global_position.y])
+			_place(v.global_position)
 			game.try_exit_vehicle()
 			check(game.possessed == v, "exit refused while airborne")
-			v.global_position.y = 0.0
-			World.report_pose(vid, v.global_position, 0.0)
+			_place(Vector3(v.global_position.x, game.terrain.height_at(v.global_position.x, v.global_position.z), v.global_position.z))
 		game.try_exit_vehicle()
 		check(game.possessed == null, "exited %s" % vid)
 
+	# --- services: damage + repair at the depot, refuel rejected when full
+	var truck2: EFVehicle = game.vehicles.get("vehicle_truck_001")
+	_place(World.to_godot(World.poi("poi_depot_south")["pose"]["position"]) + Vector3(0, 4, 0))
+	truck2.global_position = game.player.global_position + Vector3(4, 0, 0)
+	World.report_pose("vehicle_truck_001", truck2.global_position, 0.0, 0.0)
+	World.apply({"type": "SetVehicleCondition", "vehicle_id": "vehicle_truck_001", "condition_normalized": 0.6, "reason_tag": "smoke"})
+	game.try_service(true)
+	check(float(World.vehicle_state("vehicle_truck_001").get("condition_normalized", 0)) > 0.99, "repair at depot restored condition")
+	game.try_service(false)
+	check(World.state.get("player", {}).get("credits", 0) > 0, "refuel/credits sane")
+
+	# --- panels
+	game.panels.toggle_journal()
+	check(game.panels.journal.visible and game.panels.journal_list.get_child_count() > 5, "journal lists missions")
+	game.panels.toggle_journal()
+	game.panels.toggle_map()
+	await game.get_tree().process_frame
+	check(game.panels.map.visible, "map opens")
+	game.panels.toggle_map()
+	game.panels.toggle_pause()
+	check(game.get_tree().paused, "pause menu pauses")
+	game.panels.toggle_pause()
+	check(not game.get_tree().paused, "resume")
+
 	# --- realism settings do not touch the world
-	var snap_before := World.call_api("debug_summary", {}).get("result", {}).get("text", "")
+	var snap_before: String = str(World.call_api("debug_summary", {}).get("result", {}).get("text", ""))
 	World.realism_set_global("ARCADE")
 	check(World.realism.get("settings", {}).get("global_preset", "") == "ARCADE", "global preset ARCADE")
 	World.realism_set_category("helicopter", "REALISTIC")
 	check(World.resolved_profile("helicopter").get("inertia_influence", 0) == 85, "helicopter REALISTIC resolved")
-	var snap_after := World.call_api("debug_summary", {}).get("result", {}).get("text", "")
+	var snap_after: String = str(World.call_api("debug_summary", {}).get("result", {}).get("text", ""))
 	check(snap_before == snap_after, "world unchanged by realism settings")
 
 	# --- save / load

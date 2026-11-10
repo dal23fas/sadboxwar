@@ -87,8 +87,8 @@ Malformed envelope → `event_invalid`, καμία μετάλλαξη (test `env
 | Tier | Interval | Τι κάνει |
 |---|---|---|
 | L | engine fixed step | κίνηση/φυσική/animation (engine) |
-| R | 10 ticks | `stock = clamp(stock + production − consumption, 0, capacity)` ανά node/item |
-| G | 60 ticks | weather Markov chain με seeded stream `weather:<region>`; stability drift (−0.01 αν mean shortage > 0.6, αλλιώς +0.005 έως 0.95) |
+| R | 180 ticks (3 game hours) | `stock = clamp(stock + production − consumption, 0, capacity)` ανά node/item |
+| G | 60 ticks | mission deadlines/expiry + mission generator; weather Markov chain με seeded stream `weather:<region>`; stability drift (−0.01 αν mean shortage > 0.6, αλλιώς +0.005 έως 0.95) |
 
 Catch-up: `max_catchup_ticks_per_call` (default 1 εβδομάδα) — το `advanceTicks` επιστρέφει `ticks_remaining`.
 

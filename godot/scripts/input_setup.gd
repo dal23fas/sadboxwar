@@ -35,6 +35,8 @@ const DEFAULTS := {
 	"cargo_3":           [KEY_3],
 	"cargo_4":           [KEY_4],
 	"cargo_deliver":     [KEY_R],
+	"refuel":            [KEY_T],
+	"repair":            [KEY_G],
 }
 
 static func ensure_default_actions() -> void:

@@ -45,7 +45,6 @@ void WorldState::stepTierR(std::vector<std::string>& committed) {
             events.push_back(makeEvent(EventType::ResourceStockChanged, "system_economy", n.region_id, pl));
         }
     }
-    stepMissionTimers(events);
     for (const auto& e : events) commitWithReactions(e, committed);
 }
 
@@ -136,6 +135,7 @@ void WorldState::stepTierG(std::vector<std::string>& committed) {
         pl.set("mean_shortage", meanShortage); pl.set("reason_tag", meanShortage > 0.6 ? "supply_shortage" : "recovery");
         events.push_back(makeEvent(EventType::RegionStabilityChanged, "system_simulation_director", kv.first, pl));
     }
+    stepMissionTimers(events);
     stepMissionGenerator(events);
     for (const auto& e : events) commitWithReactions(e, committed);
 }

@@ -82,7 +82,7 @@ func _process(delta: float) -> void:
 		_pose_accum = 0.0
 		var p = _pose_provider.call()     # expects {"entity_id": String, "position": Vector3, "yaw_deg": float} or null
 		if p != null:
-			report_pose(p["entity_id"], p["position"], p.get("yaw_deg", 0.0))
+			report_pose(p["entity_id"], p["position"], p.get("yaw_deg", 0.0), p.get("agl", -1.0))
 	_state_accum += delta
 	if _state_accum >= 1.0 / STATE_REFRESH_HZ:
 		_state_accum = 0.0
@@ -125,19 +125,32 @@ func _tcp_roundtrip(text: String) -> String:
 	return '{"ok":false,"code":"timeout","message":"ef_server did not answer"}'
 
 # ---------------------------------------------------------------- game flow
-func start_new_game(content_path: String, presets_path: String) -> bool:
-	# Files are read here (FileAccess works inside exported packs) and passed as text to the core.
-	var presets_text := FileAccess.get_file_as_string(presets_path)
-	var content_text := FileAccess.get_file_as_string(content_path)
-	if content_text == "":
-		push_error("content file not readable: %s" % content_path)
-		return false
+const CONTENT_FILE := "asterion_island_v1.json"
+const PRESETS_FILE := "realism_presets_v1.json"
+
+func data_path(file: String) -> String:
+	# Exported builds / CI carry a copy of Content/Data in res://data; from the editor the repo folder is used.
+	if FileAccess.file_exists("res://data/" + file):
+		return "res://data/" + file
+	return ProjectSettings.globalize_path("res://").path_join("../Content/Data/" + file)
+
+func load_presets_only() -> void:
+	var presets_text := FileAccess.get_file_as_string(data_path(PRESETS_FILE))
 	var pr := call_api("load_presets", {"presets_text": presets_text})
 	if pr.get("ok", false):
 		realism = pr["result"]
 		realism_updated.emit(realism)
 	else:
 		push_warning("realism presets not loaded: %s" % str(pr))
+
+func start_new_game() -> bool:
+	# Files are read here (FileAccess works inside exported packs) and passed as text to the core.
+	var content_text := FileAccess.get_file_as_string(data_path(CONTENT_FILE))
+	if content_text == "":
+		push_error("content file not readable: %s" % data_path(CONTENT_FILE))
+		return false
+	if realism.is_empty():
+		load_presets_only()
 	var r := call_api("start_new_game", {"content_text": content_text})
 	if not r.get("ok", false):
 		push_error("start_new_game failed: %s" % str(r))
@@ -182,11 +195,17 @@ func switch_seat(seat_id: String) -> Dictionary: return apply({"type": "SwitchSe
 func load_cargo(node_id: String, item_id: String, qty: int) -> Dictionary: return apply({"type": "LoadCargo", "node_id": node_id, "item_id": item_id, "quantity": qty})
 func deliver_cargo(node_id: String, item_id: String, qty: int) -> Dictionary: return apply({"type": "DeliverCargo", "node_id": node_id, "item_id": item_id, "quantity": qty})
 func set_weather(region_id: String, condition: String) -> Dictionary: return apply({"type": "SetWeather", "region_id": region_id, "condition": condition})
+func refuel_vehicle(vehicle_id: String) -> Dictionary: return apply({"type": "RefuelVehicle", "vehicle_id": vehicle_id})
+func repair_vehicle(vehicle_id: String) -> Dictionary: return apply({"type": "RepairVehicle", "vehicle_id": vehicle_id})
 
-func report_pose(entity_id: String, position: Vector3, yaw_deg: float) -> void:
-	# Low-rate, no state refresh (the state poll handles that).
+func list_saves() -> Array:
+	var r := call_api("list_saves", {})
+	return r.get("result", {}).get("saves", []) if r.get("ok", false) else []
+
+func report_pose(entity_id: String, position: Vector3, yaw_deg: float, agl: float = -1.0) -> void:
+	# Low-rate, no state refresh (the state poll handles that). agl = height above ground when known.
 	var pose := {"position": to_core(position), "rotation": [0.0, 0.0, yaw_deg]}
-	var r := call_api("apply", {"command": {"type": "ReportPose", "entity_id": entity_id, "pose": pose}})
+	var r := call_api("apply", {"command": {"type": "ReportPose", "entity_id": entity_id, "pose": pose, "altitude_agl": agl}})
 	if r.get("ok", false):
 		_journal_cursor += r["result"].get("events", []).size()
 
