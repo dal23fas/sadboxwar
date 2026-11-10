@@ -8,7 +8,7 @@ EF_TEST(core01_new_game_creates_world_state) {
     EF_CHECK_EQ(w.player().region_id, std::string("region_asterion_west"));
     EF_CHECK_EQ(w.time().tick, static_cast<Tick>(0));
     EF_CHECK_EQ(w.vehicles().size(), static_cast<size_t>(9));
-    EF_CHECK_EQ(w.missions().size(), static_cast<size_t>(14));
+    EF_CHECK_EQ(w.missions().size(), static_cast<size_t>(15));
     EF_CHECK_EQ(w.economyNode("economy_beacon_clinic")->stock("food_crate"), 8);
     EF_CHECK_EQ(w.faction("faction_relief")->reputation, 15);
     EF_CHECK(w.possession().mode == PossessionMode::OnFoot);

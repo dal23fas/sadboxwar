@@ -44,8 +44,16 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y scons g++-mingw-w64-x86-64-posix gcc-mingw-w64-x86-64-posix binutils-mingw-w64-x86-64 unzip
+      - name: Cache godot-cpp + Godot binaries
+        uses: actions/cache@v4
+        with:
+          path: |
+            Source/EFGodot/godot-cpp
+            godot-bin
+            ~/.local/share/godot/export_templates
+          key: godot-${{ env.GODOT_RELEASE }}-v2
       - name: godot-cpp
-        run: git clone --depth 1 -b ${GODOT_VERSION} https://github.com/godotengine/godot-cpp Source/EFGodot/godot-cpp
+        run: test -d Source/EFGodot/godot-cpp || git clone --depth 1 -b ${GODOT_VERSION} https://github.com/godotengine/godot-cpp Source/EFGodot/godot-cpp
       - name: Build GDExtension (Linux)
         working-directory: Source/EFGodot
         run: scons platform=linux target=template_release -j4
@@ -59,6 +67,7 @@ jobs:
           mkdir -p godot/data && cp Content/Data/*.json godot/data/
       - name: Godot ${{ env.GODOT_VERSION }} + export templates
         run: |
+          if [ -x godot-bin ] && [ -d ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable ]; then echo "cached"; exit 0; fi
           curl -sSL -o godot.zip https://github.com/godotengine/godot/releases/download/${GODOT_RELEASE}/Godot_v${GODOT_RELEASE}_linux.x86_64.zip
           unzip -q godot.zip && mv Godot_v${GODOT_RELEASE}_linux.x86_64 godot-bin && chmod +x godot-bin
           curl -sSL -o templates.tpz https://github.com/godotengine/godot/releases/download/${GODOT_RELEASE}/Godot_v${GODOT_RELEASE}_export_templates.tpz

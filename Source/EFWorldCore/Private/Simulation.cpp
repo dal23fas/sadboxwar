@@ -135,6 +135,18 @@ void WorldState::stepTierG(std::vector<std::string>& committed) {
         pl.set("mean_shortage", meanShortage); pl.set("reason_tag", meanShortage > 0.6 ? "supply_shortage" : "recovery");
         events.push_back(makeEvent(EventType::RegionStabilityChanged, "system_simulation_director", kv.first, pl));
     }
+    // Administration shift: sustained instability (< 0.3) hands a region to the better-reputed of the two political
+    // factions. Fictional political consequence; no military modelling (§21). Checked hourly, once per day of instability.
+    for (const auto& kv : regions_) {
+        const RegionState& r = kv.second;
+        if (r.stability_normalized >= 0.3 || time_.tick % (24 * 60) != 0) continue;
+        const FactionState* cw = faction("faction_commonwealth"); const FactionState* ns = faction("faction_northshore");
+        if (!cw || !ns) continue;
+        std::string winner = (cw->reputation >= ns->reputation) ? cw->id : ns->id;
+        if (winner == r.control_faction_id) continue;
+        Json pl = Json::object(); pl.set("region_id", kv.first); pl.set("previous_faction_id", r.control_faction_id); pl.set("new_faction_id", winner); pl.set("reason_tag", "instability");
+        events.push_back(makeEvent(EventType::RegionControlChanged, "system_simulation_director", kv.first, pl));
+    }
     stepMissionTimers(events);
     stepMissionGenerator(events);
     for (const auto& e : events) commitWithReactions(e, committed);

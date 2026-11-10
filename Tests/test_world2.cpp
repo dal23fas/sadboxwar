@@ -20,7 +20,8 @@ EF_TEST(content_v2_loads_two_regions_and_14_missions) {
     WorldState w; EF_REQUIRE(newGame(w));
     EF_CHECK_EQ(w.content().content_id, std::string("asterion_archipelago_v2"));
     EF_CHECK_EQ(w.regions().size(), static_cast<size_t>(2));
-    EF_CHECK_EQ(w.missions().size(), static_cast<size_t>(14));
+    EF_CHECK_EQ(w.missions().size(), static_cast<size_t>(15));
+    EF_CHECK_EQ(w.factions().size(), static_cast<size_t>(6));
     EF_CHECK_EQ(w.vehicles().size(), static_cast<size_t>(9));
     EF_CHECK_EQ(w.region("region_northshore")->control_faction_id, std::string("faction_northshore"));
     EF_CHECK_EQ(w.infrastructureState("port_cape_varn")->status, std::string("operational"));
@@ -163,3 +164,16 @@ EF_TEST(campaign_act_switch_publishes_news) {
 }
 
 EF_TEST_MAIN()
+
+EF_TEST(sustained_instability_shifts_region_control) {
+    WorldState w; EF_REQUIRE(newGame(w));
+    // Northshore starts under the Pact; let it starve for a week with nobody helping -> stability sinks -> control shifts
+    // to whichever political faction the player/community trusts more (Commonwealth 0 vs Northshore 0 -> Commonwealth wins ties).
+    w.advanceTicks(7 * 24 * 60);
+    w.advanceTicks(7 * 24 * 60);
+    EF_CHECK(w.region("region_northshore")->stability_normalized < 0.3);
+    EF_CHECK_EQ(w.region("region_northshore")->control_faction_id, std::string("faction_commonwealth"));
+    EF_CHECK(countEvents(w, EventType::RegionControlChanged) >= 1);
+    bool news = false; for (const auto& n : w.news()) if (n.headline.find("changes hands") != std::string::npos) news = true;
+    EF_CHECK(news);
+}
