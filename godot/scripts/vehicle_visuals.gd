@@ -38,22 +38,42 @@ static func _size_for_class(c: String) -> Vector3:
 
 # ---------------------------------------------------------------- primitives
 static func _mat(color: Color, metallic := 0.2, rough := 0.7) -> StandardMaterial3D:
-	var m := StandardMaterial3D.new(); m.albedo_color = color; m.metallic = metallic; m.roughness = rough; return m
+	var m := StandardMaterial3D.new()
+	m.albedo_color = color
+	m.metallic = metallic
+	m.roughness = rough
+	return m
 
 static func _part(parent: Node3D, mesh: Mesh, size: Vector3, pos: Vector3, rot_deg: Vector3, color: Color, metallic := 0.2) -> MeshInstance3D:
-	if mesh is BoxMesh: (mesh as BoxMesh).size = size
+	if mesh is BoxMesh:
+		var bm: BoxMesh = mesh
+		bm.size = size
 	elif mesh is CylinderMesh:
-		var cy := mesh as CylinderMesh; cy.top_radius = size.x * 0.5; cy.bottom_radius = size.z * 0.5; cy.height = size.y
+		var cy: CylinderMesh = mesh
+		cy.top_radius = size.x * 0.5
+		cy.bottom_radius = size.z * 0.5
+		cy.height = size.y
 	elif mesh is CapsuleMesh:
-		var ca := mesh as CapsuleMesh; ca.radius = size.x * 0.5; ca.height = size.y
+		var ca: CapsuleMesh = mesh
+		ca.radius = size.x * 0.5
+		ca.height = size.y
 	elif mesh is SphereMesh:
-		var sp := mesh as SphereMesh; sp.radius = size.x * 0.5; sp.height = size.y
-	elif mesh is PrismMesh: (mesh as PrismMesh).size = size
-	var mi := MeshInstance3D.new(); mi.mesh = mesh; mi.position = pos; mi.rotation_degrees = rot_deg
-	mi.material_override = _mat(color, metallic); parent.add_child(mi); return mi
+		var sp: SphereMesh = mesh
+		sp.radius = size.x * 0.5
+		sp.height = size.y
+	elif mesh is PrismMesh:
+		var pr: PrismMesh = mesh
+		pr.size = size
+	var mi := MeshInstance3D.new()
+	mi.mesh = mesh
+	mi.position = pos
+	mi.rotation_degrees = rot_deg
+	mi.material_override = _mat(color, metallic)
+	parent.add_child(mi)
+	return mi
 
 static func _wheel(parent: Node3D, pos: Vector3, radius: float, width: float, out: Dictionary) -> void:
-	var w := _part(parent, CylinderMesh.new(), Vector3(radius * 2, width, radius * 2), pos, Vector3(0, 0, 90), Color(0.08, 0.08, 0.08), 0.0)
+	var w: MeshInstance3D = _part(parent, CylinderMesh.new(), Vector3(radius * 2, width, radius * 2), pos, Vector3(0, 0, 90), Color(0.08, 0.08, 0.08), 0.0)
 	out["wheels"].append(w)
 
 # ---------------------------------------------------------------- fictional designs
@@ -141,12 +161,18 @@ static func _aabb_of(n: Node) -> AABB:
 	var box := AABB()
 	var first := true
 	for c in n.find_children("*", "MeshInstance3D", true, false):
-		var a: AABB = (c as MeshInstance3D).get_aabb()
-		a.position += (c as Node3D).position
-		box = a if first else box.merge(a); first = false
+		var mi: MeshInstance3D = c
+		var a: AABB = mi.get_aabb()
+		a.position += mi.position
+		if first:
+			box = a
+			first = false
+		else:
+			box = box.merge(a)
 	return box
 
 static func _find_named(n: Node, needle: String) -> Array:
 	var res := []
-	for c in n.find_children("*" + needle + "*", "Node3D", true, false): res.append(c)
+	for c in n.find_children("*" + needle + "*", "Node3D", true, false):
+		res.append(c)
 	return res

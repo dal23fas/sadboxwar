@@ -3,6 +3,7 @@
 # class behaviour comes from the content "handling" block, feel from the resolved realism profile.
 # The core owns identity, seats, cargo, condition and persisted pose; this node only moves the mesh and
 # reports the pose at 4 Hz through World.set_pose_provider.
+class_name EFVehicle
 extends CharacterBody3D
 
 var vehicle_id := ""
@@ -196,7 +197,8 @@ func _region_weather() -> String:
 	return "clear"
 
 func _update_hud() -> void:
-	var hud = get_tree().current_scene.hud
+	var game: EFGame = get_tree().current_scene as EFGame
+	var hud: EFHud = game.hud
 	var extra := ""
 	if vehicle_class == "rotorcraft":
 		extra = "  alt %.0f m  vs %.1f m/s" % [global_position.y, vertical]
@@ -205,7 +207,7 @@ func _update_hud() -> void:
 	elif vehicle_class == "fixed_wing":
 		extra = "  alt %.0f m  throttle %d%%  %s" % [global_position.y, int(throttle_setting * 100), "STALL" if speed < float(handling.get("stall_speed_mps", 25)) and global_position.y > 1.0 else ""]
 	hud.set_vehicle_readout("%s · %s · %.0f km/h%s" % [display_name, World.realism.get("resolved", {}).get(realism_category, {}).get("preset_label", "?"), abs(speed) * 3.6, extra])
-	var poi := get_tree().current_scene.nearest_poi_id(global_position, 40.0)
+	var poi: String = game.nearest_poi_id(global_position, 40.0)
 	var lines := ["[X] Exit · [C] Camera"]
 	if vehicle_class == "rotorcraft":
 		lines.append("[W/S] Thrust · [A/D] Bank · [Space/Ctrl] Collective · [Q/E] Yaw")

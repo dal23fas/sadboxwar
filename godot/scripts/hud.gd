@@ -1,4 +1,5 @@
 # HUD — reads World.state projections only (TDD §11 command/query separation). Never a source of truth.
+class_name EFHud
 extends CanvasLayer
 
 var clock_label: Label
@@ -111,6 +112,6 @@ func show_dialogue(npc_name: String, text: String, offered_mission: Dictionary) 
 func accept_offered_mission() -> void:
 	if _offered_mission.is_empty() or not dialogue_panel.visible:
 		return
-	get_tree().current_scene.try_accept_mission(_offered_mission["mission_id"])
+	(get_tree().current_scene as EFGame).try_accept_mission(_offered_mission["mission_id"])
 	_offered_mission = {}
 	dialogue_panel.visible = false

@@ -1,6 +1,7 @@
 # SETTINGS > GAMEPLAY > REALISM & PHYSICS (supplement §13). Pure UI over the RealismProfileManager projection.
 # Global preset + per-category preset + combat challenge; custom sliders for the selected category.
 # Settings are saved by the core to <saveDir>/settings/realism.json, separate from world saves (§12).
+class_name EFRealismPanel
 extends Control
 
 var panel: PanelContainer

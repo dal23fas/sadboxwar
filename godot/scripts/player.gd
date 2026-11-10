@@ -1,9 +1,10 @@
 # Player — FPS/TPS CharacterBody3D. Movement feel is modulated by the resolved "infantry" realism profile
 # (supplement §10): inertia_influence smooths acceleration, fatigue_rate drains stamina while sprinting.
 # No world rules here: interactions are sent to the core as commands via Game/World.
+class_name EFPlayer
 extends CharacterBody3D
 
-var game: Node3D
+var game: EFGame
 var fps_cam: Camera3D
 var tps_cam: Camera3D
 var spring: SpringArm3D
@@ -40,7 +41,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		first_person = not first_person
 		make_current()          # camera is presentation only: no command, no state change (CORE-02)
 	elif event.is_action_pressed("interact"):
-		var npc := game.nearest_npc(global_position, 4.0)
+		var npc: Node3D = game.nearest_npc(global_position, 4.0)
 		if npc != null:
 			game.try_interact_npc(npc)
 	elif event.is_action_pressed("accept"):
@@ -68,9 +69,9 @@ func _physics_process(delta: float) -> void:
 	_update_prompt()
 
 func _update_prompt() -> void:
-	var npc := game.nearest_npc(global_position, 4.0)
-	var veh := game.nearest_vehicle(global_position, 8.0)
-	var poi := game.nearest_poi_id(global_position, 40.0)
+	var npc: Node3D = game.nearest_npc(global_position, 4.0)
+	var veh: EFVehicle = game.nearest_vehicle(global_position, 8.0)
+	var poi: String = game.nearest_poi_id(global_position, 40.0)
 	var lines := []
 	if npc != null:
 		lines.append("[E] Talk to %s" % npc.get_meta("npc_name"))

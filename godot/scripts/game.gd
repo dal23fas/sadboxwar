@@ -1,27 +1,23 @@
 # Game — builds the Asterion bootstrap scene from the content projection and runs the
 # on-foot / in-vehicle flow. Everything here is presentation: positions are reported to the core,
 # interactions become commands, the HUD reads projections.
+class_name EFGame
 extends Node3D
-
-const PlayerScript := preload("res://scripts/player.gd")
-const VehicleScript := preload("res://scripts/vehicle.gd")
-const HudScript := preload("res://scripts/hud.gd")
-const RealismPanelScript := preload("res://scripts/realism_settings.gd")
 
 const SAVE_SLOT := "quick"
 
-var player: CharacterBody3D
-var hud: CanvasLayer
-var realism_panel: Control
+var player: EFPlayer
+var hud: EFHud
+var realism_panel: EFRealismPanel
 var vehicles: Dictionary = {}        # vehicle_id -> Node3D
 var npc_markers: Dictionary = {}     # npc_id -> Node3D
 var poi_markers: Dictionary = {}     # poi_id -> Node3D
-var possessed: Node3D = null         # vehicle node when seated
+var possessed: EFVehicle = null      # vehicle node when seated
 var paused := false
 
 func _ready() -> void:
-	hud = CanvasLayer.new(); hud.set_script(HudScript); add_child(hud)
-	realism_panel = Control.new(); realism_panel.set_script(RealismPanelScript); hud.add_child(realism_panel)
+	hud = EFHud.new(); add_child(hud)
+	realism_panel = EFRealismPanel.new(); hud.add_child(realism_panel)
 	World.connected.connect(_on_world_connected)
 	World.connection_failed.connect(func(reason): hud.show_fatal("Core not available: %s" % reason))
 	World.world_event.connect(_on_world_event)
@@ -101,13 +97,13 @@ func _build_npcs() -> void:
 
 func _build_vehicles() -> void:
 	for v in World.state.get("vehicles", []):
-		var node := CharacterBody3D.new(); node.set_script(VehicleScript); node.name = "VEH_" + v["id"]
+		var node := EFVehicle.new(); node.name = "VEH_" + v["id"]
 		add_child(node)
 		node.setup(v, World.vehicle_definition(v["definition_id"]))
 		vehicles[v["id"]] = node
 
 func _spawn_player() -> void:
-	player = CharacterBody3D.new(); player.set_script(PlayerScript); player.name = "Player"
+	player = EFPlayer.new(); player.name = "Player"
 	add_child(player)
 	player.position = World.to_godot(World.state["player"]["pose"]["position"]) + Vector3(0, 1.2, 6)
 	player.game = self
@@ -132,8 +128,8 @@ func nearest_npc(from: Vector3, radius: float) -> Node3D:
 			best = n
 	return best
 
-func nearest_vehicle(from: Vector3, radius: float) -> Node3D:
-	var best: Node3D = null; var best_d := radius
+func nearest_vehicle(from: Vector3, radius: float) -> EFVehicle:
+	var best: EFVehicle = null; var best_d := radius
 	for v in vehicles.values():
 		var d := from.distance_to(v.global_position)
 		if d < best_d:
@@ -168,7 +164,7 @@ func try_accept_mission(mission_id: String) -> void:
 	var r := World.accept_mission(mission_id)
 	hud.toast("Mission accepted" if r.get("ok", false) else "Cannot accept: %s %s" % [r.get("code", ""), r.get("message", "")])
 
-func try_enter_vehicle(vehicle_node: Node3D) -> void:
+func try_enter_vehicle(vehicle_node: EFVehicle) -> void:
 	var r := World.enter_vehicle(vehicle_node.vehicle_id, vehicle_node.control_seat)
 	if not r.get("ok", false):
 		hud.toast("Cannot board: %s — %s" % [r.get("code", ""), r.get("message", "")])
@@ -185,7 +181,7 @@ func try_exit_vehicle() -> void:
 	if not r.get("ok", false):
 		hud.toast("Cannot exit: %s — %s" % [r.get("code", ""), r.get("message", "")])
 		return
-	var v := possessed
+	var v: EFVehicle = possessed
 	possessed = null
 	v.unpossess()
 	player.global_position = World.to_godot(World.state["player"]["pose"]["position"]) + Vector3(0, 1.0, 0)
@@ -254,7 +250,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		if possessed != null:
 			try_exit_vehicle()
 		else:
-			var v := nearest_vehicle(player.global_position, 8.0)
+			var v: EFVehicle = nearest_vehicle(player.global_position, 8.0)
 			if v != null:
 				try_enter_vehicle(v)
 	elif event.is_action_pressed("cargo_deliver"):
