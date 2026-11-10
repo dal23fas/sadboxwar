@@ -30,6 +30,7 @@ var steer := 0.0          # -1..1 smoothed
 var depth_target := 0.0   # submarine
 var spinners: Array = []
 var audio: EFEngineAudio
+var ai: EFAIDriver = null
 var wheels: Array = []
 var throttle_setting := 0.0   # fixed-wing persistent throttle 0..1
 var pitch_angle := 0.0        # fixed-wing
@@ -103,7 +104,19 @@ func _unhandled_input(event: InputEvent) -> void:
 		(cockpit_cam if cockpit_view else chase_cam).make_current()
 
 # ---------------------------------------------------------------- shared base model + layered assists
+func _axis(pos: String, neg: String) -> float:
+	if ai != null:
+		return ai.axis(pos, neg)
+	return Input.get_action_strength(pos) - Input.get_action_strength(neg)
+
+func set_ai(driver: EFAIDriver) -> void:
+	ai = driver
+	add_child(driver)
+	set_physics_process(true)
+
 func _physics_process(delta: float) -> void:
+	if ai != null:
+		ai.think(self, speed)
 	var vs := World.vehicle_state(vehicle_id)
 	fuel = float(vs.get("fuel_normalized", fuel))
 	condition = float(vs.get("condition_normalized", condition))
@@ -112,13 +125,13 @@ func _physics_process(delta: float) -> void:
 	var stab := float(prof.get("auto_stabilization", 50)) / 100.0
 	var inertia := float(prof.get("inertia_influence", 50)) / 100.0
 	var weather_sens := float(prof.get("weather_sensitivity", 50)) / 100.0
-	var throttle := Input.get_action_strength("accelerate") - Input.get_action_strength("brake")
+	var throttle := _axis("accelerate", "brake")
 	if fuel <= 0.001:
 		throttle = min(throttle, 0.0)       # out of fuel: coast / brake only
 	elif condition < 0.25:
 		throttle *= 0.4                     # badly damaged: limp
-	var steer_in := Input.get_action_strength("steer_right") - Input.get_action_strength("steer_left")
-	var up_in := Input.get_action_strength("vehicle_up") - Input.get_action_strength("vehicle_down")
+	var steer_in := _axis("steer_right", "steer_left")
+	var up_in := _axis("vehicle_up", "vehicle_down")
 	var weather: String = _region_weather()
 	var wind := 0.0
 	if weather == "rain":
@@ -133,6 +146,8 @@ func _physics_process(delta: float) -> void:
 		"naval": _sail(delta, throttle, steer_in, assist, stab, inertia, wind, false, prof)
 		"submarine": _sail(delta, throttle, steer_in, assist, stab, inertia, wind, true, prof)
 		_: _drive(delta, throttle, steer_in, assist, stab, inertia)
+	if possessed_by == null:
+		return
 	_update_hud()
 	var max_ref: float = float(handling.get("max_speed_mps", handling.get("max_speed_surface_mps", 20)))
 	audio.level = clamp(abs(speed) / max(max_ref, 1.0) + abs(throttle) * 0.3 + (0.5 if vehicle_class == "rotorcraft" else 0.0), 0.0, 1.0)
@@ -162,7 +177,7 @@ func _drive(delta: float, throttle: float, steer_in: float, assist: float, stab:
 		if global_position.y < g - 0.5:
 			global_position.y = g + 0.05
 	# damage from hard collisions (abstract, non-graphic): only on real impacts at speed
-	if get_slide_collision_count() > 0 and abs(speed) > 8.0 and condition > 0.0:
+	if ai == null and get_slide_collision_count() > 0 and abs(speed) > 8.0 and condition > 0.0:
 		var n: Vector3 = get_slide_collision(0).get_normal()
 		if abs(n.y) < 0.5:
 			speed *= 0.3
@@ -177,7 +192,7 @@ func _fly(delta: float, throttle: float, steer_in: float, up_in: float, assist: 
 	vertical = move_toward(vertical, up_in * climb, climb * response * delta * lerp(1.5, 0.5, inertia))
 	if abs(up_in) < 0.01:
 		vertical = move_toward(vertical, 0.0, climb * stab * 2.0 * delta)   # hover hold assist
-	var yaw_in := Input.get_action_strength("yaw_right") - Input.get_action_strength("yaw_left")
+	var yaw_in := _axis("yaw_right", "yaw_left")
 	steer = move_toward(steer, yaw_in + steer_in * 0.5, response * delta)
 	rotation.y -= yaw * steer * delta
 	var forward := -transform.basis.z
@@ -212,7 +227,7 @@ func _sail(delta: float, throttle: float, steer_in: float, assist: float, stab: 
 		var depth_assist := float(prof.get("depth_hold_assist", 60)) / 100.0
 		var dive_rate := float(handling.get("dive_rate_mps", 1.0))
 		var max_depth := float(handling.get("max_depth_m", 100))
-		var up_in := Input.get_action_strength("vehicle_up") - Input.get_action_strength("vehicle_down")
+		var up_in := _axis("vehicle_up", "vehicle_down")
 		if abs(up_in) > 0.01:
 			depth_target = clamp(depth_target + up_in * dive_rate * delta * 2.0, -max_depth, SEA_LEVEL)
 		var error := depth_target - global_position.y

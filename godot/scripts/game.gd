@@ -16,6 +16,7 @@ var sky: EFSky
 var ambient: EFAmbient
 var world_root: Node3D
 var vehicles: Dictionary = {}        # vehicle_id -> EFVehicle
+var ai_vehicles: Array = []          # presentation-only traffic on the shared controller
 var npc_markers: Dictionary = {}     # npc_id -> Node3D
 var poi_markers: Dictionary = {}     # poi_id -> Node3D
 var possessed: EFVehicle = null
@@ -90,6 +91,18 @@ func _start_new_game() -> void:
 	hud.show_status("")
 	hud.toast("Core: %s · %s · %d missions" % [World.backend, World.content.get("content_id", "?"), World.state.get("missions", []).size()])
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	if not smoke:
+		_hints()
+
+func _hints() -> void:
+	var lines := [
+		"Welcome to Port Lyria. Find Mayor Elara Venn (red figure by the town hall) and press E.",
+		"F accepts a mission · J opens the journal · M opens the map · compass at the top points to your objective.",
+		"The Ridge 4x4 is parked next to you: stand beside it and press X. W/S/A/D to drive, X to get out.",
+		"Load goods with 1-4 at a facility, R delivers · T refuels · G repairs · F5/F9 quick save/load · Esc menu.",
+	]
+	for i in range(lines.size()):
+		get_tree().create_timer(4.0 + i * 6.0).timeout.connect(hud.toast.bind(lines[i]))
 
 func _teardown_world() -> void:
 	in_world = false
@@ -123,7 +136,7 @@ func _build_world() -> void:
 		var m := Node3D.new(); m.position = pos; m.name = "NPC_" + n["id"]
 		_humanoid(m, Color(0.85, 0.35, 0.3) if n.get("faction_id", "") == "faction_commonwealth" else (Color(0.3, 0.45, 0.85) if n.get("faction_id", "") == "faction_northshore" else Color(0.9, 0.9, 0.9)))
 		m.add_child(_label(n["name"], 2.4))
-		m.set_meta("npc_id", n["id"]); m.set_meta("npc_name", n["name"])
+		m.set_meta("npc_id", n["id"]); m.set_meta("npc_name", n["name"]); m.set_meta("home", pos); m.set_meta("phase", randf() * TAU)
 		world_root.add_child(m); npc_markers[n["id"]] = m
 	for v in World.state.get("vehicles", []):
 		var node := EFVehicle.new(); node.name = "VEH_" + v["id"]; node.terrain = terrain
@@ -131,12 +144,49 @@ func _build_world() -> void:
 		node.setup(v, World.vehicle_definition(v["definition_id"]))
 		vehicles[v["id"]] = node
 	ambient = EFAmbient.new(); world_root.add_child(ambient); ambient.build(World.content, terrain)
+	_spawn_ai_traffic()
 	player = EFPlayer.new(); player.name = "Player"; player.game = self; world_root.add_child(player)
 	var sp: Vector3 = World.to_godot(World.state["player"]["pose"]["position"]) + Vector3(0, 0, 8)
 	sp.y = terrain.height_at(sp.x, sp.z) + 1.0
 	player.global_position = sp
 	player.make_current()
 	World.set_pose_provider(_pose_provider)
+
+func _spawn_ai_traffic() -> void:
+	# AI drivers use the same EFVehicle controller as the player (supplement §12).
+	var routes := [
+		["light_4x4_fictional", ["poi_port_lyria", "poi_beacon_clinic", "poi_ridge_mine", "poi_windfield", "poi_depot_south"], 0.7],
+		["utility_truck_fictional", ["poi_depot_south", "poi_windfield", "poi_ridge_mine", "poi_beacon_clinic", "poi_port_lyria"], 0.5],
+		["utility_patrol_boat_fictional", ["poi_harbor_west", "poi_pinewatch", "poi_cape_varn"], 0.8],
+	]
+	var n := 0
+	for r in routes:
+		var def: Dictionary = World.vehicle_definition(r[0])
+		if def.is_empty():
+			continue
+		var pts: Array[Vector3] = []
+		for pid in r[1]:
+			var p := World.poi(pid)
+			if p.is_empty():
+				continue
+			var gp: Vector3 = World.to_godot(p["pose"]["position"])
+			if def.get("vehicle_class", "") == "naval":
+				gp.y = 0.0
+				gp += Vector3(-40, 0, 0)
+			else:
+				gp.y = terrain.height_at(gp.x, gp.z)
+			pts.append(gp)
+		if pts.size() < 2:
+			continue
+		var v := EFVehicle.new(); v.name = "AI_%d" % n; v.terrain = terrain
+		world_root.add_child(v)
+		v.setup({"id": "ai_%d" % n, "definition_id": r[0], "pose": {"position": World.to_core(pts[0]), "rotation": [0, 0, 0]}}, def)
+		v.label.text = "traffic"
+		var drv := EFAIDriver.new()
+		drv.setup(pts, float(r[2]))
+		v.set_ai(drv)
+		ai_vehicles.append(v)
+		n += 1
 
 func _ground(x: float, z: float, fallback: float) -> float:
 	return terrain.height_at(x, z) if terrain != null else fallback
@@ -307,9 +357,32 @@ func _on_state_updated(state: Dictionary) -> void:
 		if vehicles.has(v["id"]) and vehicles[v["id"]] != possessed:
 			vehicles[v["id"]].sync_from_state(v)
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
+	if in_world:
+		_npc_schedules(delta)
 	if in_world and sky != null:
-		sky.follow(possessed.global_position if possessed != null else player.global_position)
+		var at: Vector3 = possessed.global_position if possessed != null else player.global_position
+		var yaw: float = possessed.rotation_degrees.y if possessed != null else player.rotation_degrees.y
+		sky.follow(at)
+		hud.update_compass(at, yaw)
+
+func _npc_schedules(delta: float) -> void:
+	# Daytime: NPCs stroll a few metres around their post; night: they stand at home. Purely presentation.
+	var hour := float(World.state.get("time", {}).get("hour", 8))
+	var daytime := hour >= 7.0 and hour <= 20.0
+	var t := Time.get_ticks_msec() / 1000.0
+	for m in npc_markers.values():
+		var home: Vector3 = m.get_meta("home")
+		var phase: float = m.get_meta("phase")
+		var target := home
+		if daytime:
+			target = home + Vector3(sin(t * 0.15 + phase) * 4.0, 0, cos(t * 0.11 + phase) * 4.0)
+			target.y = terrain.height_at(target.x, target.z)
+		var cur: Vector3 = m.global_position
+		var next := cur.lerp(target, min(1.0, delta * 0.8))
+		if next.distance_to(cur) > 0.001:
+			m.look_at(Vector3(next.x, cur.y, next.z), Vector3.UP)
+		m.global_position = next
 
 # ---------------------------------------------------------------- global input
 func _unhandled_input(event: InputEvent) -> void:

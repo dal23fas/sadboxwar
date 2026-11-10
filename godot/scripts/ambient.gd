@@ -16,9 +16,6 @@ func build(content: Dictionary, terrain: EFTerrain) -> void:
 			var a: Vector3 = poi_by_id[lane[0]]; var b: Vector3 = poi_by_id[lane[1]]
 			a.y = 0.0; b.y = 0.0
 			_add_mover(_make_visual("naval", "Fishing boat"), _offshore(a, b), _offshore(b, a), 4.0)
-	for road in content.get("terrain", {}).get("roads", []).slice(0, 4):
-		if poi_by_id.has(road[0]) and poi_by_id.has(road[1]):
-			_add_mover(_make_visual("ground", "Civilian car"), poi_by_id[road[0]], poi_by_id[road[1]], 11.0, true)
 	for p in content.get("pois", []):
 		if p.get("kind", "") in ["town", "hamlet"]:
 			var c: Vector3 = poi_by_id[p["id"]]

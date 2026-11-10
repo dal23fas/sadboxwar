@@ -17,6 +17,9 @@ var dialogue_hint: Label
 var debug_label: Label
 var fatal_label: Label
 var status_banner: Label
+var compass_label: Label
+var _objective_target: Vector3 = Vector3.INF
+var _objective_text := ""
 var _toasts: Array[String] = []
 var _toast_timer := 0.0
 var _offered_mission: Dictionary = {}
@@ -28,6 +31,7 @@ func _ready() -> void:
 	mission_label = _mk_label(root, Vector2(16, 70), 16); mission_label.modulate = Color(0.95, 0.85, 0.5)
 	news_label = _mk_label(root, Vector2(16, 120), 14); news_label.modulate = Color(0.8, 0.9, 1.0)
 	vehicle_label = _mk_label(root, Vector2(16, 200), 16); vehicle_label.modulate = Color(0.7, 1.0, 0.8)
+	compass_label = _mk_label(root, Vector2(0, 0), 18); compass_label.anchor_left = 0.5; compass_label.anchor_right = 0.5; compass_label.offset_left = -300; compass_label.offset_right = 300; compass_label.offset_top = 28; compass_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	prompt_label = _mk_label(root, Vector2(16, 0), 18); prompt_label.anchor_top = 1.0; prompt_label.anchor_bottom = 1.0; prompt_label.offset_top = -120; prompt_label.offset_bottom = -20
 	toast_label = _mk_label(root, Vector2(0, 0), 18); toast_label.anchor_left = 0.5; toast_label.anchor_right = 0.5; toast_label.offset_left = -400; toast_label.offset_right = 400; toast_label.offset_top = 60; toast_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	stamina_bar = ProgressBar.new(); stamina_bar.min_value = 0; stamina_bar.max_value = 1; stamina_bar.value = 1; stamina_bar.show_percentage = false
@@ -85,11 +89,49 @@ func _on_state(st: Dictionary) -> void:
 					lines.append("▶ %s: %s" % [m.get("title", ""), desc])
 	if lines.is_empty(): lines.append("No active mission — talk to an NPC or open the journal [J]")
 	mission_label.text = "\n".join(lines)
+	_objective_target = _current_objective_target(st)
 	var news := []
 	var arr: Array = st.get("news", [])
 	for i in range(max(0, arr.size() - 4), arr.size()):
 		news.append("• " + str(arr[i].get("headline", "")))
 	news_label.text = "\n".join(news)
+
+func _current_objective_target(st: Dictionary) -> Vector3:
+	for m in st.get("missions", []):
+		if m.get("status", "") != "Active":
+			continue
+		for o in m.get("objectives", []):
+			if not o.get("current", false):
+				continue
+			var poi_id := ""
+			match o.get("type", ""):
+				"ReachLocation": poi_id = o.get("target_id", "")
+				"TransportCargo":
+					for n in World.content.get("economy_nodes", []):
+						if n.get("id", "") == o.get("destination_node_id", ""):
+							poi_id = n.get("poi_id", "")
+				"Interact":
+					for n in World.content.get("npcs", []):
+						if n.get("id", "") == o.get("target_id", ""):
+							poi_id = n.get("poi_id", "")
+			var p := World.poi(poi_id)
+			if not p.is_empty():
+				_objective_text = p.get("name", poi_id)
+				return World.to_godot(p["pose"]["position"])
+	_objective_text = ""
+	return Vector3.INF
+
+func update_compass(from: Vector3, yaw_deg: float) -> void:
+	var heading := fposmod(-yaw_deg, 360.0)
+	var text := "HDG %03d°" % int(heading)
+	if _objective_target != Vector3.INF:
+		var d := _objective_target - from
+		var dist := Vector2(d.x, d.z).length()
+		var bearing := fposmod(rad_to_deg(atan2(d.x, -d.z)), 360.0)
+		var rel := fposmod(bearing - heading + 180.0, 360.0) - 180.0
+		var arrow := "▲" if abs(rel) < 15 else ("▶" if rel > 0 else "◀")
+		text += "   %s %s  %.0f m  (brg %03d°)" % [arrow, _objective_text, dist, int(bearing)]
+	compass_label.text = text
 
 func _npc_name(npc_id: String) -> String:
 	for n in World.content.get("npcs", []):

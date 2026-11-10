@@ -104,6 +104,10 @@ func _on_state(st: Dictionary) -> void:
 	if map.visible:
 		map_canvas.queue_redraw()
 
+func _accept_board_mission(mission_id: String) -> void:
+	(get_tree().current_scene as EFGame).try_accept_mission(mission_id)
+	_rebuild_journal(World.state)
+
 func _npc_name(npc_id: String) -> String:
 	for n in World.content.get("npcs", []):
 		if n.get("id", "") == npc_id:
@@ -135,6 +139,11 @@ func _rebuild_journal(st: Dictionary) -> void:
 			extra += "  ⏱ %dh %02dm left" % [max(0, left) / 60, max(0, left) % 60]
 		title.text = "[%s] %s%s%s" % [status.to_upper(), m.get("title", ""), " ★" if m.get("generated", false) else "", extra]
 		title.add_theme_font_size_override("font_size", 16); title.modulate = color; journal_list.add_child(title)
+		if status == "Available" and blocked == "" and str(m.get("offering_npc_id", "")) == "":
+			var accept := Button.new()
+			accept.text = "Accept from the board"
+			accept.pressed.connect(_accept_board_mission.bind(str(m.get("mission_id", ""))))
+			journal_list.add_child(accept)
 		var info := Label.new()
 		var classes: Array = m.get("allowed_vehicle_classes", [])
 		info.text = "    issuer %s · vehicles now: %s · reward %d cr, trust %+d" % [m.get("issuer_faction_id", "").replace("faction_", ""), ", ".join(classes) if not classes.is_empty() else "none (weather?)", int(m.get("rewards", {}).get("credits", 0)), int(m.get("rewards", {}).get("local_trust_delta", 0))]
