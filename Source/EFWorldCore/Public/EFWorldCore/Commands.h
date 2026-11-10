@@ -24,11 +24,14 @@ struct CmdSetVehicleCondition{ EntityId vehicle_id; double condition_normalized 
 // System / debug / scripted weather.
 struct CmdSetWeather         { EntityId region_id; std::string condition; };
 struct CmdSetCampaignFlag    { std::string flag; std::string value; };
+// Services at facilities (depot/airfield/port/town): cost credits; repair also consumes spare parts from the local node.
+struct CmdRefuelVehicle      { EntityId vehicle_id; };
+struct CmdRepairVehicle      { EntityId vehicle_id; };
 
 using Command = std::variant<
     CmdInteractNpc, CmdAcceptMission, CmdEnterVehicle, CmdExitVehicle, CmdSwitchSeat,
     CmdReportPose, CmdLoadCargo, CmdDeliverCargo, CmdSetVehicleCondition, CmdSetWeather,
-    CmdSetCampaignFlag>;
+    CmdSetCampaignFlag, CmdRefuelVehicle, CmdRepairVehicle>;
 
 struct CommandResult {
     Status status;

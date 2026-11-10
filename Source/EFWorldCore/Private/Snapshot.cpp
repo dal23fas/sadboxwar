@@ -79,6 +79,7 @@ Json WorldState::toSnapshot() const {
         missions.push(j);
     }
     s.set("missions", missions);
+    Json gen = Json::array(); for (const auto& kv : generated_) gen.push(kv.second.toJson()); s.set("generated_missions", gen);
 
     Json infra = Json::array();
     for (const auto& kv : infra_) { Json j = Json::object(); j.set("id", kv.second.id); j.set("status", kv.second.status); infra.push(j); }
@@ -167,6 +168,12 @@ Status WorldState::restoreSnapshot(const Json& s, std::vector<std::string>* warn
         v.occupied_seats.clear();
         for (const auto& sj : j.get("occupied_seats").asArray()) v.occupied_seats[sj.get("seat_id").asString()] = sj.get("occupant_entity_id").asString();
         vehicles_[id] = v;
+    }
+    for (const auto& j : s.get("generated_missions").asArray()) {
+        MissionTemplate t; std::string err;
+        if (!MissionTemplate::fromJson(j, t, &err)) { warn("generated mission dropped: " + err); continue; }
+        t.generated = true; generated_[t.id] = t;
+        if (!missions_.count(t.id)) { MissionState m; m.mission_id = t.id; missions_[t.id] = m; }
     }
     for (const auto& j : s.get("missions").asArray()) {
         auto it = missions_.find(j.get("mission_id").asString());

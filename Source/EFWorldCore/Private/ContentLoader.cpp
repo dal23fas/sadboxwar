@@ -4,6 +4,57 @@
 
 namespace ef {
 
+// ---- MissionTemplate <-> JSON (content and runtime-generated missions share one format)
+Json MissionTemplate::toJson() const {
+    Json j = Json::object();
+    j.set("id", id); j.set("title", title); j.set("type", type); j.set("issuer_faction_id", issuer_faction_id); j.set("region_id", region_id);
+    Json ev = Json::array(); for (VehicleClass c : eligible_vehicle_classes) ev.push(vehicleClassName(c)); j.set("eligible_vehicle_classes", ev);
+    Json objs = Json::array();
+    for (const auto& o : objectives) {
+        Json oj = Json::object(); oj.set("id", o.id); oj.set("type", objectiveTypeName(o.type));
+        if (!o.target_id.empty()) oj.set("target_id", o.target_id);
+        if (!o.item_id.empty()) oj.set("item_id", o.item_id);
+        if (o.quantity) oj.set("quantity", o.quantity);
+        if (!o.destination_node_id.empty()) oj.set("destination_node_id", o.destination_node_id);
+        if (o.type == ObjectiveType::ReachLocation) { oj.set("radius", o.radius); oj.set("required_vehicle_class", o.required_vehicle_class == VehicleClass::Unknown ? "" : vehicleClassName(o.required_vehicle_class)); oj.set("on_foot_allowed", o.on_foot_allowed); }
+        objs.push(oj);
+    }
+    j.set("objectives", objs);
+    Json rw = Json::object(); rw.set("credits", rewards.credits); rw.set("local_trust_delta", rewards.local_trust_delta); rw.set("faction_reputation_delta", rewards.faction_reputation_delta); j.set("rewards", rw);
+    Json pre = Json::object(); pre.set("min_local_trust", min_local_trust); Json req = Json::array(); for (const auto& r : required_completed_missions) req.push(r); pre.set("required_completed_missions", req); j.set("prerequisites", pre);
+    j.set("time_limit_ticks", static_cast<int64_t>(time_limit_ticks)); j.set("retryable", retryable); j.set("generated", generated); j.set("offered_until_tick", static_cast<int64_t>(offered_until_tick));
+    Json cf = Json::object(); for (const auto& kv : campaign_flags_on_complete) cf.set(kv.first, kv.second); j.set("campaign_flags_on_complete", cf);
+    return j;
+}
+
+bool MissionTemplate::fromJson(const Json& mj, MissionTemplate& m, std::string* error) {
+    m = MissionTemplate{};
+    m.id = mj.get("id").asString(); m.title = mj.get("title").asString(); m.type = mj.get("type").asString();
+    m.issuer_faction_id = mj.get("issuer_faction_id").asString(); m.region_id = mj.get("region_id").asString();
+    if (m.id.empty()) { if (error) *error = "mission without id"; return false; }
+    for (const auto& v : mj.get("eligible_vehicle_classes").asArray()) m.eligible_vehicle_classes.push_back(vehicleClassFromName(v.asString()));
+    for (const auto& oj : mj.get("objectives").asArray()) {
+        ObjectiveDef o; o.id = oj.get("id").asString(); o.type = objectiveTypeFromName(oj.get("type").asString());
+        o.target_id = oj.get("target_id").asString(); o.item_id = oj.get("item_id").asString();
+        o.quantity = static_cast<int>(oj.get("quantity").asInt()); o.destination_node_id = oj.get("destination_node_id").asString();
+        o.radius = oj.get("radius").asNumber(40.0); o.required_vehicle_class = vehicleClassFromName(oj.get("required_vehicle_class").asString());
+        o.on_foot_allowed = oj.get("on_foot_allowed").asBool(true);
+        if (o.type == ObjectiveType::Unknown) { if (error) *error = "mission " + m.id + " objective " + o.id + " has unknown type"; return false; }
+        m.objectives.push_back(o);
+    }
+    const Json& r = mj.get("rewards");
+    m.rewards.credits = static_cast<int>(r.get("credits").asInt()); m.rewards.local_trust_delta = static_cast<int>(r.get("local_trust_delta").asInt());
+    m.rewards.faction_reputation_delta = static_cast<int>(r.get("faction_reputation_delta").asInt());
+    const Json& pre = mj.get("prerequisites");
+    m.min_local_trust = static_cast<int>(pre.get("min_local_trust").asInt(-100));
+    for (const auto& s : pre.get("required_completed_missions").asArray()) m.required_completed_missions.push_back(s.asString());
+    m.time_limit_ticks = mj.get("time_limit_ticks").asInt(0); m.retryable = mj.get("retryable").asBool(true);
+    m.generated = mj.get("generated").asBool(false); m.offered_until_tick = mj.get("offered_until_tick").asInt(0);
+    for (const auto& kv : mj.get("campaign_flags_on_complete").asObject()) m.campaign_flags_on_complete[kv.first] = kv.second.asString();
+    if (m.objectives.empty()) { if (error) *error = "mission " + m.id + " has no objectives"; return false; }
+    return true;
+}
+
 static std::map<std::string, int> mapInt(const Json& j) { std::map<std::string, int> m; for (const auto& kv : j.asObject()) m[kv.first] = static_cast<int>(kv.second.asInt()); return m; }
 static std::vector<std::string> strList(const Json& j) { std::vector<std::string> v; for (const auto& s : j.asArray()) v.push_back(s.asString()); return v; }
 
@@ -45,6 +96,9 @@ Status loadContentFromJson(const Json& j, WorldContent& c) {
         if (d.vehicle_class == VehicleClass::Unknown) return Status::Fail("content_invalid", "vehicle definition " + d.definition_id + " has unknown class");
         d.realism_category = dj.get("realism_category").asString().empty() ? defaultRealismCategory(d.vehicle_class) : dj.get("realism_category").asString();
         d.handling = dj.get("handling").isObject() ? dj.get("handling") : Json::object();
+        d.range_km = d.handling.get("range_km").asNumber(150.0);
+        d.refuel_cost_credits = static_cast<int>(d.handling.get("refuel_cost_credits").asInt(40));
+        d.repair_cost_credits = static_cast<int>(d.handling.get("repair_cost_credits").asInt(120));
         for (const auto& sj : dj.get("seats").asArray()) {
             SeatDef s;
             if (sj.isString()) { s.seat_id = sj.asString(); s.is_control_seat = (s.seat_id == "driver" || s.seat_id == "pilot" || s.seat_id == "captain"); }
@@ -59,24 +113,12 @@ Status loadContentFromJson(const Json& j, WorldContent& c) {
         c.infrastructure[d.id] = d;
     }
     for (const auto& mj : j.get("mission_templates").asArray()) {
-        MissionTemplate m; m.id = mj.get("id").asString(); m.title = mj.get("title").asString(); m.type = mj.get("type").asString();
-        m.issuer_faction_id = mj.get("issuer_faction_id").asString(); m.region_id = mj.get("region_id").asString();
-        for (const auto& v : mj.get("eligible_vehicle_classes").asArray()) m.eligible_vehicle_classes.push_back(vehicleClassFromName(v.asString()));
-        for (const auto& oj : mj.get("objectives").asArray()) {
-            ObjectiveDef o; o.id = oj.get("id").asString(); o.type = objectiveTypeFromName(oj.get("type").asString());
-            o.target_id = oj.get("target_id").asString(); o.item_id = oj.get("item_id").asString();
-            o.quantity = static_cast<int>(oj.get("quantity").asInt()); o.destination_node_id = oj.get("destination_node_id").asString();
-            if (o.type == ObjectiveType::Unknown) return Status::Fail("content_invalid", "mission " + m.id + " objective " + o.id + " has unknown type");
+        MissionTemplate m; std::string err;
+        if (!MissionTemplate::fromJson(mj, m, &err)) return Status::Fail("content_invalid", err);
+        for (const auto& o : m.objectives) {
             if (o.type == ObjectiveType::Interact && !c.npcs.count(o.target_id)) return Status::Fail("content_invalid", "mission " + m.id + " targets unknown npc " + o.target_id);
-            m.objectives.push_back(o);
+            if (o.type == ObjectiveType::ReachLocation && !c.pois.count(o.target_id)) return Status::Fail("content_invalid", "mission " + m.id + " targets unknown poi " + o.target_id);
         }
-        const Json& r = mj.get("rewards");
-        m.rewards.credits = static_cast<int>(r.get("credits").asInt()); m.rewards.local_trust_delta = static_cast<int>(r.get("local_trust_delta").asInt());
-        m.rewards.faction_reputation_delta = static_cast<int>(r.get("faction_reputation_delta").asInt());
-        const Json& pre = mj.get("prerequisites");
-        m.min_local_trust = static_cast<int>(pre.get("min_local_trust").asInt(-100));
-        m.required_completed_missions = strList(pre.get("required_completed_missions"));
-        if (m.objectives.empty()) return Status::Fail("content_invalid", "mission " + m.id + " has no objectives");
         c.mission_templates[m.id] = m;
     }
     for (const auto& kv : j.get("dialogue").asObject())

@@ -20,9 +20,9 @@ std::vector<EventEnvelope> WorldState::react(const EventEnvelope& e) {
             // Pay rewards exactly once: only the event that actually completed the mission (MISSION-01).
             const std::string mid = e.payload.get("mission_id").asString();
             const MissionState* st = mission(mid);
-            auto dit = content_.mission_templates.find(mid);
-            if (!st || dit == content_.mission_templates.end() || st->completion_event_id != e.event_id) break;
-            const MissionTemplate& def = dit->second;
+            const MissionTemplate* defp = missionDef(mid);
+            if (!st || !defp || st->completion_event_id != e.event_id) break;
+            const MissionTemplate& def = *defp;
             const EntityId regionId = def.region_id.empty() ? player_.region_id : def.region_id;
             if (def.rewards.credits != 0) {
                 Json pl = Json::object(); pl.set("previous", player_.credits); pl.set("new", player_.credits + def.rewards.credits);
@@ -41,9 +41,24 @@ std::vector<EventEnvelope> WorldState::react(const EventEnvelope& e) {
                 pl.set("delta", nv - f->reputation); pl.set("reason_mission_id", mid);
                 out.push_back(derive(EventType::FactionReputationChanged, "system_missions", regionId, pl));
             }
+            for (const auto& kv : def.campaign_flags_on_complete) {
+                auto cur = campaign_.flags.find(kv.first);
+                std::string prev = kv.first == "act" ? campaign_.act : (cur == campaign_.flags.end() ? "" : cur->second);
+                if (prev == kv.second) continue;
+                Json pl = Json::object(); pl.set("flag", kv.first); pl.set("previous", prev); pl.set("new", kv.second); pl.set("mission_id", mid);
+                out.push_back(derive(EventType::CampaignFlagChanged, "system_campaign", regionId, pl));
+            }
             reactNews(e, out);
             break;
         }
+        case EventType::EntityPoseChanged:
+            reactMissionProgress(e, out);
+            break;
+        case EventType::CampaignFlagChanged:
+        case EventType::MissionGenerated:
+        case EventType::MissionFailed:
+            reactNews(e, out);
+            break;
         case EventType::WeatherChanged:
             reactWeatherToInfrastructure(e, out);
             reactNews(e, out);
@@ -66,9 +81,9 @@ void WorldState::reactMissionProgress(const EventEnvelope& e, std::vector<EventE
     for (const auto& kv : missions_) {
         const MissionState& st = kv.second;
         if (st.status != MissionStatus::Active) continue;
-        auto dit = content_.mission_templates.find(kv.first);
-        if (dit == content_.mission_templates.end()) continue;
-        const MissionTemplate& def = dit->second;
+        const MissionTemplate* defp = missionDef(kv.first);
+        if (!defp) continue;
+        const MissionTemplate& def = *defp;
         if (st.current_objective_index < 0) continue;
         if (st.current_objective_index >= static_cast<int>(def.objectives.size())) {
             // All objectives done -> complete (only from the event that finished the last objective)
@@ -110,6 +125,21 @@ void WorldState::reactMissionProgress(const EventEnvelope& e, std::vector<EventE
                     }
                     objectiveDone();
                 }
+                break;
+            }
+            case ObjectiveType::ReachLocation: {
+                if (e.event_type != EventType::EntityPoseChanged) break;
+                const std::string ent = p.get("entity_id").asString();
+                const bool seated = possession_.mode == PossessionMode::Seated;
+                // Only the entity the player is actually controlling counts.
+                if (seated ? ent != possession_.vehicle_id : ent != player_.entity_id) break;
+                if (!seated && !obj.on_foot_allowed) break;
+                if (obj.required_vehicle_class != VehicleClass::Unknown) {
+                    const VehicleDefinition* d = seated ? vehicleDef(possession_.vehicle_id) : nullptr;
+                    if (!d || d->vehicle_class != obj.required_vehicle_class) break;
+                }
+                const PoiDef* target = poi(obj.target_id); if (!target) break;
+                if (distance(Pose::fromJson(p.get("pose")).position, target->pose.position) <= obj.radius) objectiveDone();
                 break;
             }
             default: break;
@@ -186,6 +216,17 @@ void WorldState::reactNews(const EventEnvelope& e, std::vector<EventEnvelope>& o
         case EventType::RegionControlChanged:
             out.push_back(newsEvent("Administration of " + regionName + " changes hands", e));
             break;
+        case EventType::MissionGenerated:
+            out.push_back(newsEvent("Relief request: " + p.get("template").get("title").asString(), e));
+            break;
+        case EventType::MissionFailed: {
+            const MissionTemplate* d = missionDef(p.get("mission_id").asString());
+            out.push_back(newsEvent(std::string(d ? d->title : p.get("mission_id").asString()) + (p.get("reason").asString() == "expired" ? " — request withdrawn" : " — deadline missed"), e));
+            break;
+        }
+        case EventType::CampaignFlagChanged:
+            if (p.get("flag").asString() == "act") out.push_back(newsEvent("A new chapter begins: " + p.get("new").asString(), e));
+            break;
         case EventType::ResourceStockChanged: {
             const EconomyNodeState* n = economyNode(p.get("node_id").asString());
             if (!n) break;
@@ -206,15 +247,18 @@ void WorldState::reactNews(const EventEnvelope& e, std::vector<EventEnvelope>& o
 // ============================================================ projections
 std::vector<MissionBoardEntry> WorldState::missionBoard() const {
     std::vector<MissionBoardEntry> board;
-    for (const auto& kv : content_.mission_templates) {
-        MissionBoardEntry entry; entry.def = &kv.second;
+    std::vector<std::pair<std::string, const MissionTemplate*>> all;
+    for (const auto& kv : content_.mission_templates) all.emplace_back(kv.first, &kv.second);
+    for (const auto& kv : generated_) all.emplace_back(kv.first, &kv.second);
+    for (const auto& kv : all) {
+        MissionBoardEntry entry; entry.def = kv.second;
         const MissionState* st = mission(kv.first);
         if (st) entry.state = *st;
         std::string why;
-        if (entry.state.status == MissionStatus::Available && !missionPrerequisitesMet(kv.second, &why)) entry.blocked_reason = why;
+        if (entry.state.status == MissionStatus::Available && !missionPrerequisitesMet(*kv.second, &why)) entry.blocked_reason = why;
         // Transport modes allowed right now, considering weather/infrastructure in the mission's region.
-        const EntityId regionId = kv.second.region_id.empty() ? player_.region_id : kv.second.region_id;
-        for (VehicleClass c : kv.second.eligible_vehicle_classes) if (checkTransportMode(c, regionId)) entry.allowed_vehicle_classes.push_back(c);
+        const EntityId regionId = kv.second->region_id.empty() ? player_.region_id : kv.second->region_id;
+        for (VehicleClass c : kv.second->eligible_vehicle_classes) if (checkTransportMode(c, regionId)) entry.allowed_vehicle_classes.push_back(c);
         board.push_back(entry);
     }
     return board;

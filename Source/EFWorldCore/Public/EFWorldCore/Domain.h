@@ -64,23 +64,29 @@ struct VehicleDefinition {
     VehicleClass vehicle_class = VehicleClass::Unknown;
     std::vector<SeatDef> seats;
     int cargo_capacity_game_units = 0;
+    double range_km = 150.0;        // full tank range (fuel abstraction); from handling.range_km
+    int refuel_cost_credits = 40;   // full tank
+    int repair_cost_credits = 120;  // from 0 to 100 % condition
     std::string realism_category;   // infantry|wheeled|tracked|helicopter|fixed_wing|surface_vessel|submarine
     Json handling = Json::object(); // base physical parameters for the presentation controller (opaque to the core)
     bool hasSeat(const std::string& seatId) const;
     const SeatDef* seat(const std::string& seatId) const;
 };
 
-enum class ObjectiveType { Interact, TransportCargo, Unknown };
+enum class ObjectiveType { Interact, TransportCargo, ReachLocation, Unknown };
 const char* objectiveTypeName(ObjectiveType t);
 ObjectiveType objectiveTypeFromName(const std::string& s);
 
 struct ObjectiveDef {
     std::string id;
     ObjectiveType type = ObjectiveType::Unknown;
-    EntityId target_id;            // Interact: npc id
+    EntityId target_id;            // Interact: npc id · ReachLocation: poi id
     std::string item_id;           // TransportCargo
     int quantity = 0;              // TransportCargo
     EntityId destination_node_id;  // TransportCargo
+    double radius = 40.0;          // ReachLocation (3D distance, so underwater sites require diving)
+    VehicleClass required_vehicle_class = VehicleClass::Unknown;   // ReachLocation: Unknown = any (incl. on foot)
+    bool on_foot_allowed = true;   // ReachLocation
 };
 
 struct MissionRewards {
@@ -98,8 +104,15 @@ struct MissionTemplate {
     MissionRewards rewards;
     int min_local_trust = -100;
     std::vector<std::string> required_completed_missions;
-    // Which NPC offers it: the first Interact objective's target.
+    Tick time_limit_ticks = 0;          // 0 = none; counted from acceptance
+    bool retryable = true;              // on time-out: back to Available (no dead ends, §25) else Failed
+    bool generated = false;             // created at runtime by the mission generator (persisted in the save)
+    Tick offered_until_tick = 0;        // generated: expires if not accepted by then (0 = never)
+    std::map<std::string, std::string> campaign_flags_on_complete;   // flag -> value ("act" switches the act)
+    // Which NPC offers it: the first Interact objective's target (empty = accepted from the mission board).
     EntityId offeringNpc() const;
+    Json toJson() const;
+    static bool fromJson(const Json& j, MissionTemplate& out, std::string* error = nullptr);
 };
 
 struct InfrastructureDef {

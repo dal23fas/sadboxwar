@@ -57,11 +57,12 @@ const SeatDef* VehicleDefinition::seat(const std::string& seatId) const {
 }
 
 const char* objectiveTypeName(ObjectiveType t) {
-    switch (t) { case ObjectiveType::Interact: return "Interact"; case ObjectiveType::TransportCargo: return "TransportCargo"; default: return "Unknown"; }
+    switch (t) { case ObjectiveType::Interact: return "Interact"; case ObjectiveType::TransportCargo: return "TransportCargo"; case ObjectiveType::ReachLocation: return "ReachLocation"; default: return "Unknown"; }
 }
 ObjectiveType objectiveTypeFromName(const std::string& s) {
     if (s == "Interact") return ObjectiveType::Interact;
     if (s == "TransportCargo") return ObjectiveType::TransportCargo;
+    if (s == "ReachLocation") return ObjectiveType::ReachLocation;
     return ObjectiveType::Unknown;
 }
 

@@ -42,6 +42,8 @@ enum class EventType {
     VehicleCargoChanged,
     PlayerInventoryChanged,
     PlayerCreditsChanged,
+    VehicleFuelChanged,
+    MissionGenerated,
     Unknown
 };
 

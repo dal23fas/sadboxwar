@@ -65,6 +65,8 @@ Status JsonApi::commandFromJson(const Json& j, Command& out) {
     else if (type == "SetVehicleCondition") out = CmdSetVehicleCondition{str("vehicle_id"), j.get("condition_normalized").asNumber(1.0), str("reason_tag")};
     else if (type == "SetWeather") out = CmdSetWeather{str("region_id"), str("condition")};
     else if (type == "SetCampaignFlag") out = CmdSetCampaignFlag{str("flag"), str("value")};
+    else if (type == "RefuelVehicle") out = CmdRefuelVehicle{str("vehicle_id")};
+    else if (type == "RepairVehicle") out = CmdRepairVehicle{str("vehicle_id")};
     else return Status::Fail("unknown_command", type);
     return Status::Ok();
 }
@@ -107,13 +109,15 @@ Json JsonApi::missionBoardProjection() const {
         m.set("mission_id", e.def->id); m.set("title", e.def->title); m.set("type", e.def->type); m.set("issuer_faction_id", e.def->issuer_faction_id);
         m.set("status", missionStatusName(e.state.status)); m.set("current_objective_index", e.state.current_objective_index);
         m.set("delivered_quantity", e.state.delivered_quantity); m.set("blocked_reason", e.blocked_reason);
-        m.set("offering_npc_id", e.def->offeringNpc());
+        m.set("offering_npc_id", e.def->offeringNpc()); m.set("generated", e.def->generated); m.set("region_id", e.def->region_id);
+        m.set("time_limit_ticks", static_cast<int64_t>(e.def->time_limit_ticks)); m.set("accepted_tick", static_cast<int64_t>(e.state.accepted_tick));
         Json allowed = Json::array(); for (VehicleClass c : e.allowed_vehicle_classes) allowed.push(vehicleClassName(c)); m.set("allowed_vehicle_classes", allowed);
         Json objs = Json::array();
         for (size_t i = 0; i < e.def->objectives.size(); ++i) {
             const ObjectiveDef& o = e.def->objectives[i]; Json oj = Json::object();
             oj.set("id", o.id); oj.set("type", objectiveTypeName(o.type)); oj.set("target_id", o.target_id); oj.set("item_id", o.item_id);
-            oj.set("quantity", o.quantity); oj.set("destination_node_id", o.destination_node_id);
+            oj.set("quantity", o.quantity); oj.set("destination_node_id", o.destination_node_id); oj.set("radius", o.radius);
+            oj.set("required_vehicle_class", o.required_vehicle_class == VehicleClass::Unknown ? "" : vehicleClassName(o.required_vehicle_class));
             oj.set("done", e.state.status == MissionStatus::Completed || static_cast<int>(i) < e.state.current_objective_index);
             oj.set("current", e.state.status == MissionStatus::Active && static_cast<int>(i) == e.state.current_objective_index);
             objs.push(oj);
@@ -133,6 +137,7 @@ Json JsonApi::stateProjection(int newsCount) const {
     char clock[32]; std::snprintf(clock, sizeof clock, "Day %d %02d:%02d", t.day() + 1, t.hour(), t.minute()); time.set("clock_text", clock);
     r.set("time", time);
     const PlayerState& p = world_.player();
+    Json ca = Json::object(); ca.set("act", world_.campaign().act); Json cf = Json::object(); for (const auto& kv : world_.campaign().flags) cf.set(kv.first, kv.second); ca.set("flags", cf); r.set("campaign", ca);
     Json pl = Json::object(); pl.set("entity_id", p.entity_id); pl.set("credits", p.credits); pl.set("region_id", p.region_id); pl.set("pose", p.pose.toJson());
     pl.set("effective_pose", world_.playerEffectivePose().toJson()); pl.set("inventory", mapIntJson(p.inventory)); pl.set("carry_capacity_game_units", p.carry_capacity_game_units);
     r.set("player", pl);
@@ -143,7 +148,7 @@ Json JsonApi::stateProjection(int newsCount) const {
     for (const auto& kv : world_.vehicles()) {
         const VehicleState& v = kv.second; Json vj = Json::object();
         vj.set("id", kv.first); vj.set("definition_id", v.definition_id); vj.set("region_id", v.region_id); vj.set("pose", v.pose.toJson());
-        vj.set("condition_normalized", v.condition_normalized); vj.set("cargo", mapIntJson(v.cargo)); vj.set("cargo_units", v.cargoUnits(world_.content()));
+        vj.set("condition_normalized", v.condition_normalized); vj.set("fuel_normalized", v.fuel_normalized); vj.set("cargo", mapIntJson(v.cargo)); vj.set("cargo_units", v.cargoUnits(world_.content()));
         auto d = world_.content().vehicle_definitions.find(v.definition_id);
         vj.set("vehicle_class", d == world_.content().vehicle_definitions.end() ? "unknown" : vehicleClassName(d->second.vehicle_class));
         vj.set("display_name", d == world_.content().vehicle_definitions.end() ? v.definition_id : d->second.display_name);

@@ -29,6 +29,8 @@ const NamePair kNames[] = {
     {EventType::VehicleCargoChanged, "VehicleCargoChanged"},
     {EventType::PlayerInventoryChanged, "PlayerInventoryChanged"},
     {EventType::PlayerCreditsChanged, "PlayerCreditsChanged"},
+    {EventType::VehicleFuelChanged, "VehicleFuelChanged"},
+    {EventType::MissionGenerated, "MissionGenerated"},
 };
 } // namespace
 

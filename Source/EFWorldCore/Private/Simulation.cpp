@@ -45,7 +45,60 @@ void WorldState::stepTierR(std::vector<std::string>& committed) {
             events.push_back(makeEvent(EventType::ResourceStockChanged, "system_economy", n.region_id, pl));
         }
     }
+    stepMissionTimers(events);
     for (const auto& e : events) commitWithReactions(e, committed);
+}
+
+// Mission deadlines (time_limit_ticks from acceptance) and expiry of generated offers.
+void WorldState::stepMissionTimers(std::vector<EventEnvelope>& events) {
+    for (const auto& kv : missions_) {
+        const MissionTemplate* d = missionDef(kv.first); if (!d) continue;
+        const MissionState& st = kv.second;
+        std::string reason;
+        if (st.status == MissionStatus::Active && d->time_limit_ticks > 0 && st.accepted_tick >= 0 && time_.tick > st.accepted_tick + d->time_limit_ticks) reason = "time_limit";
+        else if (st.status == MissionStatus::Available && d->generated && d->offered_until_tick > 0 && time_.tick > d->offered_until_tick) reason = "expired";
+        if (reason.empty()) continue;
+        Json pl = Json::object(); pl.set("mission_id", kv.first); pl.set("reason", reason); pl.set("retry", d->retryable && !d->generated && reason == "time_limit");
+        events.push_back(makeEvent(EventType::MissionFailed, "system_missions", d->region_id.empty() ? player_.region_id : d->region_id, pl));
+    }
+}
+
+// Mission generator (master prompt §22/§39): a severe shortage of civilian supplies at a node creates a relief
+// mission unless one already targets that node+item. Max 3 generated offers open at once.
+void WorldState::stepMissionGenerator(std::vector<EventEnvelope>& events) {
+    int open = 0;
+    for (const auto& kv : generated_) { auto st = missions_.find(kv.first); if (st != missions_.end() && (st->second.status == MissionStatus::Available || st->second.status == MissionStatus::Active)) ++open; }
+    if (open >= 3) return;
+    for (const auto& nkv : economy_) {
+        const EconomyNodeState& n = nkv.second;
+        for (const auto& tkv : n.target_stock) {
+            const std::string& item = tkv.first;
+            auto idef = content_.items.find(item);
+            if (idef == content_.items.end() || idef->second.category != "civilian_supplies") continue;
+            if (n.shortage(item) < 0.8) continue;
+            bool covered = false;
+            for (const auto& mkv : missions_) {
+                if (mkv.second.status != MissionStatus::Available && mkv.second.status != MissionStatus::Active) continue;
+                const MissionTemplate* d = missionDef(mkv.first); if (!d) continue;
+                for (const auto& o : d->objectives) if (o.type == ObjectiveType::TransportCargo && o.destination_node_id == n.id && o.item_id == item) covered = true;
+            }
+            if (covered) continue;
+            int qty = std::clamp(tkv.second - n.stock(item), 4, 10);
+            MissionTemplate t;
+            t.id = "gen_relief_" + n.id + "_" + item + "_" + std::to_string(time_.tick);
+            const PoiDef* pp = poi(n.poi_id);
+            t.title = "Emergency " + idef->second.label + " for " + (pp ? pp->name : n.id);
+            t.type = "civilian_relief"; t.issuer_faction_id = "faction_relief"; t.region_id = n.region_id;
+            t.eligible_vehicle_classes = {VehicleClass::Ground, VehicleClass::Armored, VehicleClass::Rotorcraft, VehicleClass::FixedWing, VehicleClass::Naval, VehicleClass::Submarine};
+            ObjectiveDef o; o.id = "obj_transport"; o.type = ObjectiveType::TransportCargo; o.item_id = item; o.quantity = qty; o.destination_node_id = n.id;
+            t.objectives.push_back(o);
+            t.rewards.credits = static_cast<int>(std::lround(qty * idef->second.base_price_credits * 1.5)); t.rewards.local_trust_delta = 4; t.rewards.faction_reputation_delta = 2;
+            t.time_limit_ticks = 2 * 24 * 60; t.retryable = false; t.generated = true; t.offered_until_tick = time_.tick + 3 * 24 * 60;
+            Json pl = Json::object(); pl.set("template", t.toJson()); pl.set("node_id", n.id); pl.set("item_id", item);
+            events.push_back(makeEvent(EventType::MissionGenerated, "system_missions", n.region_id, pl));
+            if (++open >= 3) return;
+        }
+    }
 }
 
 // Tier G: weather (seeded, deterministic per region+tick) and civic stability drift.
@@ -83,6 +136,7 @@ void WorldState::stepTierG(std::vector<std::string>& committed) {
         pl.set("mean_shortage", meanShortage); pl.set("reason_tag", meanShortage > 0.6 ? "supply_shortage" : "recovery");
         events.push_back(makeEvent(EventType::RegionStabilityChanged, "system_simulation_director", kv.first, pl));
     }
+    stepMissionGenerator(events);
     for (const auto& e : events) commitWithReactions(e, committed);
 }
 

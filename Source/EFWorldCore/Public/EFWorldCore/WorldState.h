@@ -59,6 +59,8 @@ public:
     const std::map<EntityId, EconomyNodeState>& economyNodes() const { return economy_; }
     const std::map<EntityId, VehicleState>& vehicles() const { return vehicles_; }
     const std::map<EntityId, MissionState>& missions() const { return missions_; }
+    const MissionTemplate* missionDef(const EntityId& id) const;   // content template or runtime-generated
+    const std::map<EntityId, MissionTemplate>& generatedMissions() const { return generated_; }
     const std::map<EntityId, InfrastructureState>& infrastructure() const { return infra_; }
     const std::map<EntityId, WeatherState>& weather() const { return weather_; }
     const std::vector<NewsItem>& news() const { return news_; }
@@ -95,6 +97,8 @@ private:
     Status handle(const CmdSetVehicleCondition&, std::vector<EventEnvelope>&);
     Status handle(const CmdSetWeather&, std::vector<EventEnvelope>&);
     Status handle(const CmdSetCampaignFlag&, std::vector<EventEnvelope>&);
+    Status handle(const CmdRefuelVehicle&, std::vector<EventEnvelope>&);
+    Status handle(const CmdRepairVehicle&, std::vector<EventEnvelope>&);
 
     // event pipeline
     // Primary events get sequential IDs (evt_0000042). Derived events get deterministic IDs
@@ -116,9 +120,12 @@ private:
     // simulation steps
     void stepTierR(std::vector<std::string>& committed);
     void stepTierG(std::vector<std::string>& committed);
+    void stepMissionTimers(std::vector<EventEnvelope>& out);
+    void stepMissionGenerator(std::vector<EventEnvelope>& out);
 
     // helpers
     const PoiDef* poi(const EntityId& id) const;
+    const PoiDef* nearestPoiOfKinds(const Vec3& p, const std::vector<std::string>& kinds, double radius) const;
     const NpcDef* npc(const EntityId& id) const;
     const VehicleDefinition* vehicleDef(const EntityId& vehicleId) const;
     const InfrastructureState* infrastructureNear(const Vec3& p, const std::string& kind, double radius) const;
@@ -139,6 +146,7 @@ private:
     std::map<EntityId, EconomyNodeState> economy_;
     std::map<EntityId, VehicleState> vehicles_;
     std::map<EntityId, MissionState> missions_;
+    std::map<EntityId, MissionTemplate> generated_;
     std::map<EntityId, InfrastructureState> infra_;
     std::map<EntityId, WeatherState> weather_;
     std::vector<NewsItem> news_;

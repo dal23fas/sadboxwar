@@ -2,6 +2,7 @@
 #include "EFWorldCore/WorldState.h"
 #include <algorithm>
 #include <cstdio>
+#include <cmath>
 
 namespace ef {
 
@@ -18,7 +19,7 @@ Status WorldState::initFromContent(const WorldContent& content) {
     player_.pose = content.pois.at(content.starting_poi_id).pose;
     possession_ = PossessionState{};
     campaign_ = CampaignState{};
-    regions_.clear(); factions_.clear(); economy_.clear(); vehicles_.clear();
+    regions_.clear(); factions_.clear(); economy_.clear(); vehicles_.clear(); generated_.clear();
     missions_.clear(); infra_.clear(); weather_.clear(); news_.clear(); journal_.clear();
     for (const auto& r : content.initial_regions) regions_[r.id] = r;
     for (const auto& f : content.initial_factions) factions_[f.id] = f;
@@ -45,6 +46,20 @@ const MissionState* WorldState::mission(const EntityId& id) const { auto it = mi
 const InfrastructureState* WorldState::infrastructureState(const EntityId& id) const { auto it = infra_.find(id); return it == infra_.end() ? nullptr : &it->second; }
 const WeatherState* WorldState::regionWeather(const EntityId& id) const { auto it = weather_.find(id); return it == weather_.end() ? nullptr : &it->second; }
 const PoiDef* WorldState::poi(const EntityId& id) const { auto it = content_.pois.find(id); return it == content_.pois.end() ? nullptr : &it->second; }
+const MissionTemplate* WorldState::missionDef(const EntityId& id) const {
+    auto it = content_.mission_templates.find(id); if (it != content_.mission_templates.end()) return &it->second;
+    auto g = generated_.find(id); return g == generated_.end() ? nullptr : &g->second;
+}
+const PoiDef* WorldState::nearestPoiOfKinds(const Vec3& p, const std::vector<std::string>& kinds, double radius) const {
+    const PoiDef* best = nullptr; double bestD = radius;
+    for (const auto& kv : content_.pois) {
+        bool ok = false; for (const auto& k : kinds) if (kv.second.kind == k) ok = true;
+        if (!ok) continue;
+        double d = distance(p, kv.second.pose.position);
+        if (d <= bestD) { bestD = d; best = &kv.second; }
+    }
+    return best;
+}
 const NpcDef* WorldState::npc(const EntityId& id) const { auto it = content_.npcs.find(id); return it == content_.npcs.end() ? nullptr : &it->second; }
 const VehicleDefinition* WorldState::vehicleDef(const EntityId& vehicleId) const {
     const VehicleState* v = vehicle(vehicleId); if (!v) return nullptr;
@@ -201,14 +216,14 @@ Status WorldState::handle(const CmdInteractNpc& c, std::vector<EventEnvelope>& o
 }
 
 Status WorldState::handle(const CmdAcceptMission& c, std::vector<EventEnvelope>& out) {
-    auto dit = content_.mission_templates.find(c.mission_id);
-    if (dit == content_.mission_templates.end()) return Status::Fail("mission_not_found", c.mission_id);
-    const MissionTemplate& def = dit->second;
+    const MissionTemplate* defp = missionDef(c.mission_id);
+    if (!defp) return Status::Fail("mission_not_found", c.mission_id);
+    const MissionTemplate& def = *defp;
     const MissionState* st = mission(c.mission_id);
     if (!st || st->status != MissionStatus::Available) return Status::Fail("mission_not_available", missionStatusName(st ? st->status : MissionStatus::Locked));
     std::string why; if (!missionPrerequisitesMet(def, &why)) return Status::Fail("prerequisites_not_met", why);
-    if (possession_.mode != PossessionMode::OnFoot) return Status::Fail("must_be_on_foot");
     const NpcDef* n = npc(def.offeringNpc());
+    if (n && possession_.mode != PossessionMode::OnFoot) return Status::Fail("must_be_on_foot");
     if (n) {
         const PoiDef* p = poi(n->poi_id);
         if (!p || distance(player_.pose.position, p->pose.position) > config_.interact_radius) return Status::Fail("too_far", "talk to " + n->name);
@@ -289,6 +304,56 @@ Status WorldState::handle(const CmdReportPose& c, std::vector<EventEnvelope>& ou
     }
     Json pl = Json::object(); pl.set("entity_id", c.entity_id); pl.set("pose", c.pose.toJson());
     out.push_back(makeEvent(EventType::EntityPoseChanged, c.entity_id, regionId, pl));
+    if (c.entity_id != player_.entity_id) {
+        const VehicleState* v = vehicle(c.entity_id); const VehicleDefinition* d = vehicleDef(c.entity_id);
+        if (v && d && d->range_km > 0.0) {
+            double meters = distance(v->pose.position, c.pose.position);
+            if (meters > 0.01 && meters < 5000.0) {   // teleports / load corrections do not burn fuel
+                double nf = std::max(0.0, v->fuel_normalized - meters / (d->range_km * 1000.0));
+                if (nf != v->fuel_normalized) {
+                    Json fl = Json::object(); fl.set("vehicle_id", c.entity_id); fl.set("previous", v->fuel_normalized); fl.set("new", nf); fl.set("reason_tag", "travel");
+                    out.push_back(makeEvent(EventType::VehicleFuelChanged, "system_vehicles", regionId, fl));
+                }
+            }
+        }
+    }
+    return Status::Ok();
+}
+
+Status WorldState::handle(const CmdRefuelVehicle& c, std::vector<EventEnvelope>& out) {
+    const VehicleState* v = vehicle(c.vehicle_id); const VehicleDefinition* d = vehicleDef(c.vehicle_id);
+    if (!v || !d) return Status::Fail("vehicle_not_found", c.vehicle_id);
+    if (distance(playerEffectivePose().position, v->pose.position) > config_.board_radius) return Status::Fail("too_far", "stand next to the vehicle");
+    if (!nearestPoiOfKinds(v->pose.position, {"depot", "airfield", "port", "town"}, config_.delivery_radius)) return Status::Fail("no_service_here", "refuel at a depot, airfield, port or town");
+    if (v->fuel_normalized >= 0.999) return Status::Fail("tank_full");
+    int cost = static_cast<int>(std::lround((1.0 - v->fuel_normalized) * d->refuel_cost_credits));
+    if (player_.credits < cost) return Status::Fail("insufficient_credits", std::to_string(cost) + " needed");
+    Json fl = Json::object(); fl.set("vehicle_id", c.vehicle_id); fl.set("previous", v->fuel_normalized); fl.set("new", 1.0); fl.set("reason_tag", "refuel");
+    out.push_back(makeEvent(EventType::VehicleFuelChanged, player_.entity_id, v->region_id, fl));
+    if (cost > 0) { Json cr = Json::object(); cr.set("previous", player_.credits); cr.set("new", player_.credits - cost); cr.set("delta", -cost); cr.set("reason_tag", "refuel"); out.push_back(makeEvent(EventType::PlayerCreditsChanged, player_.entity_id, v->region_id, cr)); }
+    return Status::Ok();
+}
+
+Status WorldState::handle(const CmdRepairVehicle& c, std::vector<EventEnvelope>& out) {
+    const VehicleState* v = vehicle(c.vehicle_id); const VehicleDefinition* d = vehicleDef(c.vehicle_id);
+    if (!v || !d) return Status::Fail("vehicle_not_found", c.vehicle_id);
+    if (distance(playerEffectivePose().position, v->pose.position) > config_.board_radius) return Status::Fail("too_far", "stand next to the vehicle");
+    const PoiDef* at = nearestPoiOfKinds(v->pose.position, {"depot", "airfield", "port"}, config_.delivery_radius);
+    if (!at) return Status::Fail("no_service_here", "repair at a depot, airfield or port");
+    if (v->condition_normalized >= 0.999) return Status::Fail("no_damage");
+    double deficit = 1.0 - v->condition_normalized;
+    int cost = static_cast<int>(std::lround(deficit * d->repair_cost_credits));
+    int parts = static_cast<int>(std::ceil(deficit * 4.0));
+    if (player_.credits < cost) return Status::Fail("insufficient_credits", std::to_string(cost) + " needed");
+    // spare parts come from the nearest economy node that has them (any node within 400 m of the service POI)
+    const EconomyNodeState* src = nullptr;
+    for (const auto& kv : economy_) { const PoiDef* np = poi(kv.second.poi_id); if (np && distance(np->pose.position, at->pose.position) <= 400.0 && kv.second.stock("spare_parts") >= parts) { src = &kv.second; break; } }
+    if (!src) return Status::Fail("no_spare_parts", std::to_string(parts) + " spare parts needed nearby");
+    Json st = Json::object(); st.set("node_id", src->id); st.set("item_id", "spare_parts"); st.set("previous_quantity", src->stock("spare_parts")); st.set("new_quantity", src->stock("spare_parts") - parts); st.set("delta", -parts); st.set("reason_tag", "repair");
+    out.push_back(makeEvent(EventType::ResourceStockChanged, player_.entity_id, v->region_id, st));
+    Json cd = Json::object(); cd.set("vehicle_id", c.vehicle_id); cd.set("previous", v->condition_normalized); cd.set("new", 1.0); cd.set("reason_tag", "repair");
+    out.push_back(makeEvent(EventType::VehicleConditionChanged, player_.entity_id, v->region_id, cd));
+    if (cost > 0) { Json cr = Json::object(); cr.set("previous", player_.credits); cr.set("new", player_.credits - cost); cr.set("delta", -cost); cr.set("reason_tag", "repair"); out.push_back(makeEvent(EventType::PlayerCreditsChanged, player_.entity_id, v->region_id, cr)); }
     return Status::Ok();
 }
 
@@ -444,7 +509,25 @@ void WorldState::applyEvent(const EventEnvelope& e) {
         }
         case EventType::MissionFailed: {
             auto it = missions_.find(p.get("mission_id").asString());
-            if (it != missions_.end() && it->second.status == MissionStatus::Active) it->second.status = MissionStatus::Failed;
+            if (it != missions_.end() && (it->second.status == MissionStatus::Active || it->second.status == MissionStatus::Available)) {
+                const MissionTemplate* d = missionDef(it->first);
+                bool retry = d && d->retryable && !d->generated && it->second.status == MissionStatus::Active;
+                it->second.status = retry ? MissionStatus::Available : MissionStatus::Failed;
+                it->second.current_objective_index = 0; it->second.delivered_quantity = 0; it->second.accepted_tick = -1;
+            }
+            break;
+        }
+        case EventType::MissionGenerated: {
+            MissionTemplate t; std::string err;
+            if (MissionTemplate::fromJson(p.get("template"), t, &err) && !content_.mission_templates.count(t.id)) {
+                t.generated = true; generated_[t.id] = t;
+                if (!missions_.count(t.id)) { MissionState m; m.mission_id = t.id; missions_[t.id] = m; }
+            }
+            break;
+        }
+        case EventType::VehicleFuelChanged: {
+            auto it = vehicles_.find(p.get("vehicle_id").asString());
+            if (it != vehicles_.end()) it->second.fuel_normalized = std::clamp(p.get("new").asNumber(), 0.0, 1.0);
             break;
         }
         case EventType::CommunityReputationChanged: {
@@ -489,7 +572,8 @@ void WorldState::applyEvent(const EventEnvelope& e) {
             break;
         }
         case EventType::CampaignFlagChanged:
-            campaign_.flags[p.get("flag").asString()] = p.get("new").asString();
+            if (p.get("flag").asString() == "act") campaign_.act = p.get("new").asString();
+            else campaign_.flags[p.get("flag").asString()] = p.get("new").asString();
             break;
         case EventType::WorldNewsPublished: {
             NewsItem n; n.news_id = p.get("news_id").asString(); n.headline = p.get("headline").asString();
