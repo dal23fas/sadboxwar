@@ -189,9 +189,9 @@ func try_exit_vehicle() -> void:
 	player.make_current()
 
 func cargo_action(item_index: int, deliver: bool) -> void:
-	var at := possessed.global_position if possessed != null else player.global_position
+	var at: Vector3 = possessed.global_position if possessed != null else player.global_position
 	var poi_id := nearest_poi_id(at, 40.0)
-	var node_id := World.economy_node_at_poi(poi_id) if poi_id != "" else ""
+	var node_id: String = World.economy_node_at_poi(poi_id) if poi_id != "" else ""
 	if node_id == "":
 		hud.toast("No facility in range")
 		return

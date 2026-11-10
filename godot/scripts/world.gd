@@ -65,7 +65,7 @@ func _process(delta: float) -> void:
 		return
 	_tick_accum += delta * TICKS_PER_REAL_SECOND
 	if _tick_accum >= 1.0:
-		var ticks := int(floor(_tick_accum))
+		var ticks: int = int(floor(_tick_accum))
 		_tick_accum -= ticks
 		var r := call_api("advance_ticks", {"ticks": ticks})
 		if r.get("ok", false) and int(r["result"].get("new_event_count", 0)) > 0:

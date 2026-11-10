@@ -117,8 +117,8 @@ func _physics_process(delta: float) -> void:
 
 func _drive(delta: float, throttle: float, steer_in: float, assist: float, stab: float, inertia: float) -> void:
 	var max_speed := float(handling.get("max_speed_mps", 20))
-	var accel := float(handling.get("accel_mps2", 3.0)) * lerp(2.0, 0.8, inertia)
-	var brake := float(handling.get("brake_mps2", 6.0)) * lerp(1.6, 0.9, inertia)
+	var accel: float = float(handling.get("accel_mps2", 3.0)) * lerp(2.0, 0.8, inertia)
+	var brake: float = float(handling.get("brake_mps2", 6.0)) * lerp(1.6, 0.9, inertia)
 	var turn := deg_to_rad(float(handling.get("turn_rate_dps", 60)))
 	if throttle > 0:
 		speed = move_toward(speed, max_speed, accel * delta)
@@ -127,9 +127,9 @@ func _drive(delta: float, throttle: float, steer_in: float, assist: float, stab:
 	else:
 		speed = move_toward(speed, 0.0, lerp(4.0, 1.0, inertia) * delta)   # rolling resistance
 	steer = move_toward(steer, steer_in, lerp(2.5, 9.0, assist) * delta)      # assist = steering response
-	var speed_factor := clamp(abs(speed) / max(max_speed, 1.0), 0.0, 1.0)
-	var pivot := 1.0 if vehicle_class == "armored" else clamp(abs(speed) / 3.0, 0.0, 1.0)   # tracked vehicles pivot in place
-	var yaw_rate := turn * steer * pivot * lerp(1.0, 1.0 - 0.6 * speed_factor, stab)  # stabilization reduces high-speed oversteer
+	var speed_factor: float = clamp(abs(speed) / max(max_speed, 1.0), 0.0, 1.0)
+	var pivot: float = 1.0 if vehicle_class == "armored" else clamp(abs(speed) / 3.0, 0.0, 1.0)   # tracked vehicles pivot in place
+	var yaw_rate: float = turn * steer * pivot * lerp(1.0, 1.0 - 0.6 * speed_factor, stab)  # stabilization reduces high-speed oversteer
 	rotation.y -= yaw_rate * delta * sign(speed if abs(speed) > 0.1 else 1.0)
 	var forward := -transform.basis.z
 	velocity.x = forward.x * speed; velocity.z = forward.z * speed
@@ -140,7 +140,7 @@ func _fly(delta: float, throttle: float, steer_in: float, up_in: float, assist: 
 	var max_speed := float(handling.get("max_speed_mps", 60))
 	var climb := float(handling.get("climb_rate_mps", 6))
 	var yaw := deg_to_rad(float(handling.get("yaw_rate_dps", 60)))
-	var response := lerp(0.8, 4.0, assist)
+	var response: float = lerp(0.8, 4.0, assist)
 	speed = move_toward(speed, throttle * max_speed, max_speed * response * 0.25 * delta * lerp(1.5, 0.5, inertia))
 	vertical = move_toward(vertical, up_in * climb, climb * response * delta * lerp(1.5, 0.5, inertia))
 	if abs(up_in) < 0.01:
@@ -162,8 +162,8 @@ func _fly(delta: float, throttle: float, steer_in: float, up_in: float, assist: 
 
 func _sail(delta: float, throttle: float, steer_in: float, assist: float, stab: float, inertia: float, wind: float, submarine: bool, prof: Dictionary) -> void:
 	var submerged := submarine and global_position.y < SEA_LEVEL - 0.5
-	var max_speed := float(handling.get("max_speed_submerged_mps" if submerged else ("max_speed_surface_mps" if submarine else "max_speed_mps"), 10))
-	var accel := float(handling.get("accel_mps2", 1.0)) * lerp(2.0, 0.6, inertia)
+	var max_speed: float = float(handling.get("max_speed_submerged_mps" if submerged else ("max_speed_surface_mps" if submarine else "max_speed_mps"), 10))
+	var accel: float = float(handling.get("accel_mps2", 1.0)) * lerp(2.0, 0.6, inertia)
 	var turn := deg_to_rad(float(handling.get("turn_rate_dps", 30)))
 	speed = move_toward(speed, throttle * max_speed, accel * delta)
 	if abs(throttle) < 0.01:
@@ -245,7 +245,7 @@ func _fly_plane(delta: float, throttle_in: float, roll_in: float, pitch_in: floa
 		pitch_angle = 0.0
 	rotation.x = pitch_angle * 0.6
 	var forward := -transform.basis.z
-	var lift_factor := clamp((speed - stall) / max(stall, 1.0), 0.0, 1.0)
+	var lift_factor: float = clamp((speed - stall) / max(stall, 1.0), 0.0, 1.0)
 	if flying:
 		vertical = sin(pitch_angle) * speed * 0.5 * lift_factor + (climb * 0.3 * lift_factor if pitch_angle > 0.05 else 0.0)
 		if abs(pitch_in) < 0.01 and stab > 0.6:

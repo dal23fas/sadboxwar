@@ -53,11 +53,11 @@ func _physics_process(delta: float) -> void:
 	var fatigue := float(profile.get("fatigue_rate", 50)) / 100.0
 	var input := Vector2(Input.get_action_strength("move_right") - Input.get_action_strength("move_left"),
 						 Input.get_action_strength("move_back") - Input.get_action_strength("move_forward"))
-	var dir := (transform.basis * Vector3(input.x, 0, input.y)).normalized() if input.length() > 0.01 else Vector3.ZERO
+	var dir: Vector3 = (transform.basis * Vector3(input.x, 0, input.y)).normalized() if input.length() > 0.01 else Vector3.ZERO
 	var sprinting := Input.is_action_pressed("sprint") and stamina > 0.05 and dir != Vector3.ZERO
-	var target_speed := SPRINT if sprinting else WALK
+	var target_speed: float = SPRINT if sprinting else WALK
 	stamina = clamp(stamina - delta * 0.25 * fatigue if sprinting else stamina + delta * 0.15, 0.0, 1.0)
-	var accel := lerp(40.0, 6.0, inertia)       # arcade: instant; realistic: weighty
+	var accel: float = lerp(40.0, 6.0, inertia)       # arcade: instant; realistic: weighty
 	var target := dir * target_speed
 	velocity.x = move_toward(velocity.x, target.x, accel * delta)
 	velocity.z = move_toward(velocity.z, target.z, accel * delta)
