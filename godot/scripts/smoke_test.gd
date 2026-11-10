@@ -128,7 +128,7 @@ func run() -> void:
 		check(is_finite(v.global_position.x) and is_finite(v.global_position.y), "%s position finite" % vid)
 		if v.vehicle_class == "rotorcraft":
 			check(v.global_position.y > y0 + 2.0, "helicopter climbed (%.1f -> %.1f)" % [y0, v.global_position.y])
-			_place(v.global_position)
+			_place(v.global_position + Vector3(0, 40, 0))   # well above the airborne-exit threshold (5 m AGL)
 			game.try_exit_vehicle()
 			check(game.possessed == v, "exit refused while airborne")
 			_place(Vector3(v.global_position.x, game.terrain.height_at(v.global_position.x, v.global_position.z), v.global_position.z))

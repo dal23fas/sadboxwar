@@ -29,6 +29,7 @@ var vertical := 0.0       # m/s (rotorcraft/submarine)
 var steer := 0.0          # -1..1 smoothed
 var depth_target := 0.0   # submarine
 var spinners: Array = []
+var audio: EFEngineAudio
 var wheels: Array = []
 var throttle_setting := 0.0   # fixed-wing persistent throttle 0..1
 var pitch_angle := 0.0        # fixed-wing
@@ -53,6 +54,8 @@ func setup(state: Dictionary, definition: Dictionary) -> void:
 	chase = SpringArm3D.new(); chase.spring_length = max(12.0, size.z * 2.5); chase.position.y = size.y + 2.0; chase.rotation_degrees.x = -18; chase.collision_mask = 0; add_child(chase)
 	chase_cam = Camera3D.new(); chase.add_child(chase_cam)
 	cockpit_cam = Camera3D.new(); cockpit_cam.position = Vector3(0, size.y * 0.9, -size.z * 0.25); add_child(cockpit_cam)
+	audio = EFEngineAudio.new()
+	add_child(audio)
 	sync_from_state(state)
 	set_physics_process(false)
 
@@ -79,10 +82,13 @@ func possess(_player: Node) -> void:
 	cockpit_view = false
 	chase_cam.make_current()
 	set_physics_process(true)
+	if not OS.has_feature("headless"):
+		audio.start(vehicle_class)
 
 func unpossess() -> void:
 	possessed_by = null
 	set_physics_process(false)
+	audio.stop_engine()
 	rotation.x = 0.0
 	rotation.z = 0.0
 	pitch_angle = 0.0
@@ -128,6 +134,8 @@ func _physics_process(delta: float) -> void:
 		"submarine": _sail(delta, throttle, steer_in, assist, stab, inertia, wind, true, prof)
 		_: _drive(delta, throttle, steer_in, assist, stab, inertia)
 	_update_hud()
+	var max_ref: float = float(handling.get("max_speed_mps", handling.get("max_speed_surface_mps", 20)))
+	audio.level = clamp(abs(speed) / max(max_ref, 1.0) + abs(throttle) * 0.3 + (0.5 if vehicle_class == "rotorcraft" else 0.0), 0.0, 1.0)
 
 func _drive(delta: float, throttle: float, steer_in: float, assist: float, stab: float, inertia: float) -> void:
 	var max_speed := float(handling.get("max_speed_mps", 20))
