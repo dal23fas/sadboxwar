@@ -1,0 +1,25 @@
+ID,Subsystem,Test,Expected,Priority,Status,Evidence
+CORE-01,Startup,New game initialization,World state and player entity created,P0,PASS_CORE,Tests/test_world_loop.cpp core01 + ef_headless step 1
+CORE-02,Player,FPS/TPS toggle,Same player identity and mission state,P0,NOT_RUN,Presentation-only (camera); requires UE5 Phase 1
+ROLE-01,Possession,Enter and exit ground vehicle,Camera and input switch without inventory loss,P0,PASS_CORE,test_world_loop role01 (domain side); camera/input part NOT_RUN
+ROLE-02,Possession,Enter and exit helicopter,Stable world clock and role transition,P0,PASS_CORE,test_world_loop helicopter_cannot_be_exited_airborne + ef_headless steps 5-6
+ROLE-03,Possession,Enter and exit boat,Same persistent avatar and mission state,P1,PASS_CORE,test_world_loop ws05 + ef_headless step 7
+SAVE-01,Persistence,Save on foot and reload,Avatar and world tick restored,P0,PASS_CORE,test_save_load save01 (byte-identical snapshot)
+SAVE-02,Persistence,Save while seated and reload,Valid vehicle-seat restore or safe fallback,P0,PASS_CORE,test_save_load save02 (both branches)
+MISSION-01,Missions,Complete mission once,Single reward and final state,P0,PASS_CORE,test_world_loop mission01 (+ repeated debrief does not pay)
+ECON-01,Economy,Deliver civilian supplies,Destination node stock increases once,P0,PASS_CORE,test_world_loop mission01 + ef_headless step 4
+REPU-01,Reputation,Relief mission completion,Local and faction reputation updated as specified,P0,PASS_CORE,test_world_loop mission01 (+8 trust +3 faction over two missions)
+NEWS-01,News,Complete relief event,Source event referenced in game news,P1,PASS_CORE,test_world_loop mission01 + ef_headless step 8
+WORLD-01,Simulation,Region sim without loaded 3D actors,Aggregate simulation advances,P1,PASS_CORE,test_simulation world01 (144 Tier-R / 24 Tier-G steps per day)
+WORLD-02,Simulation,Weather restricts harbor,Economic/service state and mission options update,P1,PASS_CORE,test_world_loop ws05 (explicit) + test_simulation world02 (seeded)
+EVT-01,Events,Replay duplicate event ID,No duplicate state mutation,P0,PASS_CORE,test_events (journal + world ingest + derived effects)
+WS-04,Events,Deliver then save/load then replay journal,No duplicate reward; replay == snapshot,P0,PASS_CORE,test_save_load ws04
+WS-06,Simulation,Same seed and save/load mid-run,Identical world after same total ticks,P1,PASS_CORE,test_simulation ws06
+WS-09,Persistence,Save references missing vehicle,Safe fallback and warning,P1,PASS_CORE,test_save_load save02 second half
+WS-10,Commands,Failed prerequisites,No state mutation,P0,PASS_CORE,test_world_loop ws10
+STREAM-01,Streaming,Cross map partition boundary,Vehicle and mission state preserved,P1,NOT_RUN,Requires UE5 World Partition (Phase 1/2)
+CAM-01,Cameras,Switch modes repeatedly,No stuck input or camera clipping,P1,NOT_RUN,Requires UE5 (Phase 1)
+UI-01,UI,Open map/economy/mission screen,Shows authoritative values,P1,NOT_RUN,Requires UE5 UMG (Phase 1); projections exist in UEFWorldSubsystem (unverified)
+AV-01,Aviation,Complete transport objective,Payload transfer and reward happen once,P1,PASS_CORE,ef_headless steps 5-6 (domain); flight model NOT_RUN
+NAV-01,Naval,Complete harbor transport objective,Single economy update and proper disembark,P1,PASS_CORE,ef_headless step 7 (domain); boat physics NOT_RUN
+PERF-01,Performance,Active island scene at target settings,FPS and memory captured with actual hardware,P2,NOT_RUN,No target hardware specified; no renderer in this environment

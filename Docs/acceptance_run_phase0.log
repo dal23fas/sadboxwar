@@ -1,0 +1,498 @@
+[ 1] Start new game in Port Lyria                     OK   player_main @ tick 0
+[ 2] Talk to Mayor Elara Venn (accept First Contact)  OK   2 event(s)
+     mayor: "The task isn't finished yet. The clinic is waiting."
+[ 2] Debrief First Contact                            OK   7 event(s)
+[ 2] Accept Road Supplies                             OK   2 event(s)
+[ 3] Enter and drive truck                            OK   2 event(s)
+[ 3] Load 6 food crates at Port Lyria                 OK   2 event(s)
+[ 4] Deliver goods (stock changes exactly once)       OK   6 event(s), clinic food 3 -> 9
+[ 4] Debrief Road Supplies (reward once)              OK   7 event(s), credits 70 -> 190
+[ 5] Board helicopter at Windfield                    OK   2 event(s)
+[ 5] Exit refused while airborne                      OK   exit_unsafe_airborne
+[ 6] Complete Sky Relief (trust/reward updated)       OK   trust 8 -> 14
+[ 7] Travel to Harbor West, board boat                OK   2 event(s)
+[ 7] Harbor Link delivered by sea in the same save    OK   6 event(s)
+[ 8] Return to town, read news (linked to committed events) OK   8 news items
+     mayor: "Asterion remembers who showed up when it mattered."
+[ 9] Save / quit / load (all changes intact, no duplicates) OK   snapshot byte-identical
+[10] Advance world time 24h offscreen                 OK   289 aggregate events, tierR=144 tierG=24
+
+=== journal (392 events) ===
+evt_0000001            t=0     MissionAccepted              src=player_main
+evt_0000001/1          t=0     MissionObjectiveCompleted    src=system_missions
+evt_0000002            t=0     EntityPoseChanged            src=player_main
+evt_0000003            t=0     NpcInteracted                src=player_main
+evt_0000003/1          t=0     MissionObjectiveCompleted    src=system_missions
+evt_0000004            t=0     EntityPoseChanged            src=player_main
+evt_0000005            t=0     NpcInteracted                src=player_main
+evt_0000005/1          t=0     MissionObjectiveCompleted    src=system_missions
+evt_0000005/1/1        t=0     MissionCompleted             src=system_missions
+evt_0000005/1/1/1      t=0     PlayerCreditsChanged         src=system_missions
+evt_0000005/1/1/2      t=0     CommunityReputationChanged   src=system_missions
+evt_0000005/1/1/3      t=0     FactionReputationChanged     src=system_missions
+evt_0000005/1/1/4      t=0     WorldNewsPublished           src=system_news
+evt_0000006            t=0     MissionAccepted              src=player_main
+evt_0000006/1          t=0     MissionObjectiveCompleted    src=system_missions
+evt_0000007            t=0     EntityPoseChanged            src=player_main
+evt_0000008            t=0     VehicleEntered               src=player_main
+evt_0000009            t=0     RoleChanged                  src=player_main
+evt_0000010            t=0     EntityPoseChanged            src=vehicle_truck_001
+evt_0000011            t=0     ResourceStockChanged         src=player_main
+evt_0000012            t=0     VehicleCargoChanged          src=player_main
+evt_0000013            t=0     EntityPoseChanged            src=vehicle_truck_001
+evt_0000014            t=0     VehicleCargoChanged          src=player_main
+evt_0000015            t=0     ResourceStockChanged         src=player_main
+evt_0000015/1          t=0     MissionObjectiveProgressed   src=system_missions
+evt_0000015/1/1        t=0     CivilianReliefDelivered      src=player_main
+evt_0000015/1/1/1      t=0     WorldNewsPublished           src=system_news
+evt_0000015/1/2        t=0     MissionObjectiveCompleted    src=system_missions
+evt_0000016            t=0     EntityPoseChanged            src=vehicle_truck_001
+evt_0000017            t=0     VehicleExited                src=player_main
+evt_0000018            t=0     RoleChanged                  src=player_main
+evt_0000019            t=0     NpcInteracted                src=player_main
+evt_0000019/1          t=0     MissionObjectiveCompleted    src=system_missions
+evt_0000019/1/1        t=0     MissionCompleted             src=system_missions
+evt_0000019/1/1/1      t=0     PlayerCreditsChanged         src=system_missions
+evt_0000019/1/1/2      t=0     CommunityReputationChanged   src=system_missions
+evt_0000019/1/1/3      t=0     FactionReputationChanged     src=system_missions
+evt_0000019/1/1/4      t=0     WorldNewsPublished           src=system_news
+evt_0000020            t=0     EntityPoseChanged            src=player_main
+evt_0000021            t=0     MissionAccepted              src=player_main
+evt_0000021/1          t=0     MissionObjectiveCompleted    src=system_missions
+evt_0000022            t=0     VehicleEntered               src=player_main
+evt_0000023            t=0     RoleChanged                  src=player_main
+evt_0000024            t=0     EntityPoseChanged            src=vehicle_helo_001
+evt_0000025            t=0     ResourceStockChanged         src=player_main
+evt_0000026            t=0     VehicleCargoChanged          src=player_main
+evt_0000027            t=0     EntityPoseChanged            src=vehicle_helo_001
+evt_0000028            t=0     EntityPoseChanged            src=vehicle_helo_001
+evt_0000029            t=0     VehicleCargoChanged          src=player_main
+evt_0000030            t=0     ResourceStockChanged         src=player_main
+evt_0000030/1          t=0     MissionObjectiveProgressed   src=system_missions
+evt_0000030/1/1        t=0     CivilianReliefDelivered      src=player_main
+evt_0000030/1/1/1      t=0     WorldNewsPublished           src=system_news
+evt_0000030/1/2        t=0     MissionObjectiveCompleted    src=system_missions
+evt_0000031            t=0     EntityPoseChanged            src=vehicle_helo_001
+evt_0000032            t=0     VehicleExited                src=player_main
+evt_0000033            t=0     RoleChanged                  src=player_main
+evt_0000034            t=0     NpcInteracted                src=player_main
+evt_0000034/1          t=0     MissionObjectiveCompleted    src=system_missions
+evt_0000034/1/1        t=0     MissionCompleted             src=system_missions
+evt_0000034/1/1/1      t=0     PlayerCreditsChanged         src=system_missions
+evt_0000034/1/1/2      t=0     CommunityReputationChanged   src=system_missions
+evt_0000034/1/1/3      t=0     FactionReputationChanged     src=system_missions
+evt_0000034/1/1/4      t=0     WorldNewsPublished           src=system_news
+evt_0000035            t=0     EntityPoseChanged            src=player_main
+evt_0000036            t=0     MissionAccepted              src=player_main
+evt_0000036/1          t=0     MissionObjectiveCompleted    src=system_missions
+evt_0000037            t=0     VehicleEntered               src=player_main
+evt_0000038            t=0     RoleChanged                  src=player_main
+evt_0000039            t=0     EntityPoseChanged            src=vehicle_boat_001
+evt_0000040            t=0     ResourceStockChanged         src=player_main
+evt_0000041            t=0     VehicleCargoChanged          src=player_main
+evt_0000042            t=0     EntityPoseChanged            src=vehicle_boat_001
+evt_0000043            t=0     VehicleCargoChanged          src=player_main
+evt_0000044            t=0     ResourceStockChanged         src=player_main
+evt_0000044/1          t=0     MissionObjectiveProgressed   src=system_missions
+evt_0000044/1/1        t=0     CivilianReliefDelivered      src=player_main
+evt_0000044/1/1/1      t=0     WorldNewsPublished           src=system_news
+evt_0000044/1/2        t=0     MissionObjectiveCompleted    src=system_missions
+evt_0000045            t=0     EntityPoseChanged            src=vehicle_boat_001
+evt_0000046            t=0     VehicleExited                src=player_main
+evt_0000047            t=0     RoleChanged                  src=player_main
+evt_0000048            t=0     NpcInteracted                src=player_main
+evt_0000048/1          t=0     MissionObjectiveCompleted    src=system_missions
+evt_0000048/1/1        t=0     MissionCompleted             src=system_missions
+evt_0000048/1/1/1      t=0     PlayerCreditsChanged         src=system_missions
+evt_0000048/1/1/2      t=0     CommunityReputationChanged   src=system_missions
+evt_0000048/1/1/3      t=0     FactionReputationChanged     src=system_missions
+evt_0000048/1/1/4      t=0     WorldNewsPublished           src=system_news
+evt_0000049            t=0     EntityPoseChanged            src=player_main
+evt_0000050            t=0     MissionAccepted              src=player_main
+evt_0000050/1          t=0     MissionObjectiveCompleted    src=system_missions
+evt_0000051            t=0     EntityPoseChanged            src=player_main
+evt_0000052            t=0     NpcInteracted                src=player_main
+evt_0000052/1          t=0     MissionObjectiveCompleted    src=system_missions
+evt_0000053            t=0     EntityPoseChanged            src=player_main
+evt_0000054            t=0     NpcInteracted                src=player_main
+evt_0000054/1          t=0     MissionObjectiveCompleted    src=system_missions
+evt_0000054/1/1        t=0     MissionCompleted             src=system_missions
+evt_0000054/1/1/1      t=0     PlayerCreditsChanged         src=system_missions
+evt_0000054/1/1/2      t=0     CommunityReputationChanged   src=system_missions
+evt_0000054/1/1/3      t=0     FactionReputationChanged     src=system_missions
+evt_0000054/1/1/4      t=0     WorldNewsPublished           src=system_news
+evt_0000055            t=10    ResourceStockChanged         src=system_economy
+evt_0000056            t=10    ResourceStockChanged         src=system_economy
+evt_0000057            t=10    ResourceStockChanged         src=system_economy
+evt_0000057/1          t=10    WorldNewsPublished           src=system_news
+evt_0000058            t=10    ResourceStockChanged         src=system_economy
+evt_0000059            t=10    ResourceStockChanged         src=system_economy
+evt_0000060            t=10    ResourceStockChanged         src=system_economy
+evt_0000061            t=10    ResourceStockChanged         src=system_economy
+evt_0000062            t=20    ResourceStockChanged         src=system_economy
+evt_0000063            t=20    ResourceStockChanged         src=system_economy
+evt_0000064            t=20    ResourceStockChanged         src=system_economy
+evt_0000065            t=20    ResourceStockChanged         src=system_economy
+evt_0000066            t=20    ResourceStockChanged         src=system_economy
+evt_0000067            t=20    ResourceStockChanged         src=system_economy
+evt_0000068            t=20    ResourceStockChanged         src=system_economy
+evt_0000069            t=30    ResourceStockChanged         src=system_economy
+evt_0000070            t=30    ResourceStockChanged         src=system_economy
+evt_0000071            t=30    ResourceStockChanged         src=system_economy
+evt_0000072            t=30    ResourceStockChanged         src=system_economy
+evt_0000072/1          t=30    WorldNewsPublished           src=system_news
+evt_0000073            t=30    ResourceStockChanged         src=system_economy
+evt_0000074            t=30    ResourceStockChanged         src=system_economy
+evt_0000075            t=30    ResourceStockChanged         src=system_economy
+evt_0000076            t=40    ResourceStockChanged         src=system_economy
+evt_0000077            t=40    ResourceStockChanged         src=system_economy
+evt_0000077/1          t=40    WorldNewsPublished           src=system_news
+evt_0000078            t=40    ResourceStockChanged         src=system_economy
+evt_0000079            t=40    ResourceStockChanged         src=system_economy
+evt_0000080            t=40    ResourceStockChanged         src=system_economy
+evt_0000081            t=40    ResourceStockChanged         src=system_economy
+evt_0000082            t=40    ResourceStockChanged         src=system_economy
+evt_0000083            t=50    ResourceStockChanged         src=system_economy
+evt_0000084            t=50    ResourceStockChanged         src=system_economy
+evt_0000085            t=50    ResourceStockChanged         src=system_economy
+evt_0000086            t=50    ResourceStockChanged         src=system_economy
+evt_0000087            t=50    ResourceStockChanged         src=system_economy
+evt_0000088            t=50    ResourceStockChanged         src=system_economy
+evt_0000089            t=50    ResourceStockChanged         src=system_economy
+evt_0000090            t=60    ResourceStockChanged         src=system_economy
+evt_0000090/1          t=60    WorldNewsPublished           src=system_news
+evt_0000091            t=60    ResourceStockChanged         src=system_economy
+evt_0000092            t=60    ResourceStockChanged         src=system_economy
+evt_0000093            t=60    ResourceStockChanged         src=system_economy
+evt_0000094            t=60    ResourceStockChanged         src=system_economy
+evt_0000095            t=60    ResourceStockChanged         src=system_economy
+evt_0000096            t=60    WeatherChanged               src=system_weather
+evt_0000096/1          t=60    InfrastructureStatusChanged  src=system_weather
+evt_0000096/1/1        t=60    WorldNewsPublished           src=system_news
+evt_0000096/2          t=60    InfrastructureStatusChanged  src=system_weather
+evt_0000096/2/1        t=60    WorldNewsPublished           src=system_news
+evt_0000096/3          t=60    WorldNewsPublished           src=system_news
+evt_0000097            t=60    RegionStabilityChanged       src=system_simulation_director
+evt_0000098            t=70    ResourceStockChanged         src=system_economy
+evt_0000099            t=70    ResourceStockChanged         src=system_economy
+evt_0000100            t=70    ResourceStockChanged         src=system_economy
+evt_0000101            t=70    ResourceStockChanged         src=system_economy
+evt_0000102            t=80    ResourceStockChanged         src=system_economy
+evt_0000103            t=80    ResourceStockChanged         src=system_economy
+evt_0000104            t=80    ResourceStockChanged         src=system_economy
+evt_0000105            t=80    ResourceStockChanged         src=system_economy
+evt_0000106            t=90    ResourceStockChanged         src=system_economy
+evt_0000107            t=90    ResourceStockChanged         src=system_economy
+evt_0000108            t=90    ResourceStockChanged         src=system_economy
+evt_0000109            t=90    ResourceStockChanged         src=system_economy
+evt_0000110            t=100   ResourceStockChanged         src=system_economy
+evt_0000110/1          t=100   WorldNewsPublished           src=system_news
+evt_0000111            t=100   ResourceStockChanged         src=system_economy
+evt_0000112            t=100   ResourceStockChanged         src=system_economy
+evt_0000113            t=110   ResourceStockChanged         src=system_economy
+evt_0000114            t=110   ResourceStockChanged         src=system_economy
+evt_0000115            t=110   ResourceStockChanged         src=system_economy
+evt_0000116            t=120   ResourceStockChanged         src=system_economy
+evt_0000117            t=120   ResourceStockChanged         src=system_economy
+evt_0000118            t=120   ResourceStockChanged         src=system_economy
+evt_0000119            t=120   WeatherChanged               src=system_weather
+evt_0000119/1          t=120   InfrastructureStatusChanged  src=system_weather
+evt_0000119/1/1        t=120   WorldNewsPublished           src=system_news
+evt_0000119/2          t=120   InfrastructureStatusChanged  src=system_weather
+evt_0000119/2/1        t=120   WorldNewsPublished           src=system_news
+evt_0000119/3          t=120   WorldNewsPublished           src=system_news
+evt_0000120            t=120   RegionStabilityChanged       src=system_simulation_director
+evt_0000121            t=130   ResourceStockChanged         src=system_economy
+evt_0000122            t=130   ResourceStockChanged         src=system_economy
+evt_0000123            t=130   ResourceStockChanged         src=system_economy
+evt_0000124            t=140   ResourceStockChanged         src=system_economy
+evt_0000125            t=140   ResourceStockChanged         src=system_economy
+evt_0000126            t=140   ResourceStockChanged         src=system_economy
+evt_0000127            t=150   ResourceStockChanged         src=system_economy
+evt_0000128            t=150   ResourceStockChanged         src=system_economy
+evt_0000129            t=160   ResourceStockChanged         src=system_economy
+evt_0000130            t=160   ResourceStockChanged         src=system_economy
+evt_0000131            t=170   ResourceStockChanged         src=system_economy
+evt_0000132            t=170   ResourceStockChanged         src=system_economy
+evt_0000133            t=180   ResourceStockChanged         src=system_economy
+evt_0000134            t=180   ResourceStockChanged         src=system_economy
+evt_0000135            t=180   RegionStabilityChanged       src=system_simulation_director
+evt_0000136            t=190   ResourceStockChanged         src=system_economy
+evt_0000137            t=190   ResourceStockChanged         src=system_economy
+evt_0000138            t=200   ResourceStockChanged         src=system_economy
+evt_0000139            t=200   ResourceStockChanged         src=system_economy
+evt_0000140            t=210   ResourceStockChanged         src=system_economy
+evt_0000141            t=210   ResourceStockChanged         src=system_economy
+evt_0000142            t=220   ResourceStockChanged         src=system_economy
+evt_0000143            t=220   ResourceStockChanged         src=system_economy
+evt_0000144            t=230   ResourceStockChanged         src=system_economy
+evt_0000145            t=230   ResourceStockChanged         src=system_economy
+evt_0000146            t=240   ResourceStockChanged         src=system_economy
+evt_0000147            t=240   ResourceStockChanged         src=system_economy
+evt_0000148            t=240   WeatherChanged               src=system_weather
+evt_0000148/1          t=240   InfrastructureStatusChanged  src=system_weather
+evt_0000148/1/1        t=240   WorldNewsPublished           src=system_news
+evt_0000148/2          t=240   InfrastructureStatusChanged  src=system_weather
+evt_0000148/2/1        t=240   WorldNewsPublished           src=system_news
+evt_0000148/3          t=240   WorldNewsPublished           src=system_news
+evt_0000149            t=240   RegionStabilityChanged       src=system_simulation_director
+evt_0000150            t=250   ResourceStockChanged         src=system_economy
+evt_0000151            t=250   ResourceStockChanged         src=system_economy
+evt_0000152            t=260   ResourceStockChanged         src=system_economy
+evt_0000153            t=260   ResourceStockChanged         src=system_economy
+evt_0000154            t=270   ResourceStockChanged         src=system_economy
+evt_0000155            t=270   ResourceStockChanged         src=system_economy
+evt_0000156            t=280   ResourceStockChanged         src=system_economy
+evt_0000157            t=280   ResourceStockChanged         src=system_economy
+evt_0000158            t=290   ResourceStockChanged         src=system_economy
+evt_0000159            t=290   ResourceStockChanged         src=system_economy
+evt_0000160            t=300   ResourceStockChanged         src=system_economy
+evt_0000161            t=300   ResourceStockChanged         src=system_economy
+evt_0000162            t=300   RegionStabilityChanged       src=system_simulation_director
+evt_0000163            t=310   ResourceStockChanged         src=system_economy
+evt_0000164            t=310   ResourceStockChanged         src=system_economy
+evt_0000165            t=320   ResourceStockChanged         src=system_economy
+evt_0000166            t=320   ResourceStockChanged         src=system_economy
+evt_0000167            t=330   ResourceStockChanged         src=system_economy
+evt_0000168            t=330   ResourceStockChanged         src=system_economy
+evt_0000169            t=340   ResourceStockChanged         src=system_economy
+evt_0000170            t=340   ResourceStockChanged         src=system_economy
+evt_0000171            t=350   ResourceStockChanged         src=system_economy
+evt_0000172            t=350   ResourceStockChanged         src=system_economy
+evt_0000173            t=360   ResourceStockChanged         src=system_economy
+evt_0000174            t=360   ResourceStockChanged         src=system_economy
+evt_0000175            t=360   RegionStabilityChanged       src=system_simulation_director
+evt_0000176            t=370   ResourceStockChanged         src=system_economy
+evt_0000177            t=370   ResourceStockChanged         src=system_economy
+evt_0000178            t=380   ResourceStockChanged         src=system_economy
+evt_0000179            t=380   ResourceStockChanged         src=system_economy
+evt_0000180            t=390   ResourceStockChanged         src=system_economy
+evt_0000181            t=390   ResourceStockChanged         src=system_economy
+evt_0000182            t=400   ResourceStockChanged         src=system_economy
+evt_0000183            t=400   ResourceStockChanged         src=system_economy
+evt_0000184            t=410   ResourceStockChanged         src=system_economy
+evt_0000185            t=410   ResourceStockChanged         src=system_economy
+evt_0000186            t=420   ResourceStockChanged         src=system_economy
+evt_0000187            t=420   ResourceStockChanged         src=system_economy
+evt_0000188            t=420   RegionStabilityChanged       src=system_simulation_director
+evt_0000189            t=430   ResourceStockChanged         src=system_economy
+evt_0000190            t=430   ResourceStockChanged         src=system_economy
+evt_0000191            t=440   ResourceStockChanged         src=system_economy
+evt_0000192            t=440   ResourceStockChanged         src=system_economy
+evt_0000193            t=450   ResourceStockChanged         src=system_economy
+evt_0000194            t=450   ResourceStockChanged         src=system_economy
+evt_0000195            t=460   ResourceStockChanged         src=system_economy
+evt_0000196            t=460   ResourceStockChanged         src=system_economy
+evt_0000197            t=470   ResourceStockChanged         src=system_economy
+evt_0000198            t=470   ResourceStockChanged         src=system_economy
+evt_0000199            t=480   ResourceStockChanged         src=system_economy
+evt_0000200            t=480   ResourceStockChanged         src=system_economy
+evt_0000201            t=480   RegionStabilityChanged       src=system_simulation_director
+evt_0000202            t=490   ResourceStockChanged         src=system_economy
+evt_0000203            t=490   ResourceStockChanged         src=system_economy
+evt_0000204            t=500   ResourceStockChanged         src=system_economy
+evt_0000205            t=500   ResourceStockChanged         src=system_economy
+evt_0000206            t=510   ResourceStockChanged         src=system_economy
+evt_0000207            t=510   ResourceStockChanged         src=system_economy
+evt_0000208            t=520   ResourceStockChanged         src=system_economy
+evt_0000209            t=520   ResourceStockChanged         src=system_economy
+evt_0000210            t=530   ResourceStockChanged         src=system_economy
+evt_0000211            t=530   ResourceStockChanged         src=system_economy
+evt_0000212            t=540   ResourceStockChanged         src=system_economy
+evt_0000213            t=540   ResourceStockChanged         src=system_economy
+evt_0000214            t=540   RegionStabilityChanged       src=system_simulation_director
+evt_0000215            t=550   ResourceStockChanged         src=system_economy
+evt_0000216            t=550   ResourceStockChanged         src=system_economy
+evt_0000217            t=560   ResourceStockChanged         src=system_economy
+evt_0000218            t=560   ResourceStockChanged         src=system_economy
+evt_0000219            t=570   ResourceStockChanged         src=system_economy
+evt_0000220            t=570   ResourceStockChanged         src=system_economy
+evt_0000221            t=580   ResourceStockChanged         src=system_economy
+evt_0000222            t=580   ResourceStockChanged         src=system_economy
+evt_0000223            t=590   ResourceStockChanged         src=system_economy
+evt_0000224            t=590   ResourceStockChanged         src=system_economy
+evt_0000225            t=600   ResourceStockChanged         src=system_economy
+evt_0000226            t=600   ResourceStockChanged         src=system_economy
+evt_0000227            t=600   WeatherChanged               src=system_weather
+evt_0000227/1          t=600   InfrastructureStatusChanged  src=system_weather
+evt_0000227/1/1        t=600   WorldNewsPublished           src=system_news
+evt_0000227/2          t=600   InfrastructureStatusChanged  src=system_weather
+evt_0000227/2/1        t=600   WorldNewsPublished           src=system_news
+evt_0000227/3          t=600   WorldNewsPublished           src=system_news
+evt_0000228            t=600   RegionStabilityChanged       src=system_simulation_director
+evt_0000229            t=610   ResourceStockChanged         src=system_economy
+evt_0000230            t=610   ResourceStockChanged         src=system_economy
+evt_0000231            t=620   ResourceStockChanged         src=system_economy
+evt_0000232            t=620   ResourceStockChanged         src=system_economy
+evt_0000233            t=630   ResourceStockChanged         src=system_economy
+evt_0000234            t=630   ResourceStockChanged         src=system_economy
+evt_0000235            t=640   ResourceStockChanged         src=system_economy
+evt_0000236            t=640   ResourceStockChanged         src=system_economy
+evt_0000237            t=650   ResourceStockChanged         src=system_economy
+evt_0000238            t=650   ResourceStockChanged         src=system_economy
+evt_0000239            t=660   ResourceStockChanged         src=system_economy
+evt_0000240            t=660   ResourceStockChanged         src=system_economy
+evt_0000241            t=660   RegionStabilityChanged       src=system_simulation_director
+evt_0000242            t=670   ResourceStockChanged         src=system_economy
+evt_0000243            t=670   ResourceStockChanged         src=system_economy
+evt_0000244            t=680   ResourceStockChanged         src=system_economy
+evt_0000245            t=680   ResourceStockChanged         src=system_economy
+evt_0000246            t=690   ResourceStockChanged         src=system_economy
+evt_0000247            t=690   ResourceStockChanged         src=system_economy
+evt_0000248            t=700   ResourceStockChanged         src=system_economy
+evt_0000249            t=700   ResourceStockChanged         src=system_economy
+evt_0000250            t=710   ResourceStockChanged         src=system_economy
+evt_0000251            t=710   ResourceStockChanged         src=system_economy
+evt_0000252            t=720   ResourceStockChanged         src=system_economy
+evt_0000253            t=720   ResourceStockChanged         src=system_economy
+evt_0000254            t=720   WeatherChanged               src=system_weather
+evt_0000254/1          t=720   InfrastructureStatusChanged  src=system_weather
+evt_0000254/1/1        t=720   WorldNewsPublished           src=system_news
+evt_0000254/2          t=720   InfrastructureStatusChanged  src=system_weather
+evt_0000254/2/1        t=720   WorldNewsPublished           src=system_news
+evt_0000254/3          t=720   WorldNewsPublished           src=system_news
+evt_0000255            t=720   RegionStabilityChanged       src=system_simulation_director
+evt_0000256            t=730   ResourceStockChanged         src=system_economy
+evt_0000257            t=730   ResourceStockChanged         src=system_economy
+evt_0000258            t=740   ResourceStockChanged         src=system_economy
+evt_0000259            t=740   ResourceStockChanged         src=system_economy
+evt_0000260            t=750   ResourceStockChanged         src=system_economy
+evt_0000261            t=750   ResourceStockChanged         src=system_economy
+evt_0000262            t=760   ResourceStockChanged         src=system_economy
+evt_0000263            t=760   ResourceStockChanged         src=system_economy
+evt_0000264            t=770   ResourceStockChanged         src=system_economy
+evt_0000265            t=770   ResourceStockChanged         src=system_economy
+evt_0000266            t=780   ResourceStockChanged         src=system_economy
+evt_0000267            t=780   ResourceStockChanged         src=system_economy
+evt_0000268            t=780   WeatherChanged               src=system_weather
+evt_0000268/1          t=780   InfrastructureStatusChanged  src=system_weather
+evt_0000268/1/1        t=780   WorldNewsPublished           src=system_news
+evt_0000268/2          t=780   InfrastructureStatusChanged  src=system_weather
+evt_0000268/2/1        t=780   WorldNewsPublished           src=system_news
+evt_0000268/3          t=780   WorldNewsPublished           src=system_news
+evt_0000269            t=780   RegionStabilityChanged       src=system_simulation_director
+evt_0000270            t=790   ResourceStockChanged         src=system_economy
+evt_0000271            t=790   ResourceStockChanged         src=system_economy
+evt_0000272            t=800   ResourceStockChanged         src=system_economy
+evt_0000273            t=800   ResourceStockChanged         src=system_economy
+evt_0000274            t=810   ResourceStockChanged         src=system_economy
+evt_0000275            t=820   ResourceStockChanged         src=system_economy
+evt_0000276            t=830   ResourceStockChanged         src=system_economy
+evt_0000277            t=840   ResourceStockChanged         src=system_economy
+evt_0000278            t=840   WeatherChanged               src=system_weather
+evt_0000278/1          t=840   InfrastructureStatusChanged  src=system_weather
+evt_0000278/1/1        t=840   WorldNewsPublished           src=system_news
+evt_0000278/2          t=840   InfrastructureStatusChanged  src=system_weather
+evt_0000278/2/1        t=840   WorldNewsPublished           src=system_news
+evt_0000278/3          t=840   WorldNewsPublished           src=system_news
+evt_0000279            t=840   RegionStabilityChanged       src=system_simulation_director
+evt_0000280            t=850   ResourceStockChanged         src=system_economy
+evt_0000281            t=860   ResourceStockChanged         src=system_economy
+evt_0000282            t=900   WeatherChanged               src=system_weather
+evt_0000282/1          t=900   InfrastructureStatusChanged  src=system_weather
+evt_0000282/1/1        t=900   WorldNewsPublished           src=system_news
+evt_0000282/2          t=900   InfrastructureStatusChanged  src=system_weather
+evt_0000282/2/1        t=900   WorldNewsPublished           src=system_news
+evt_0000282/3          t=900   WorldNewsPublished           src=system_news
+evt_0000283            t=900   RegionStabilityChanged       src=system_simulation_director
+evt_0000284            t=960   WeatherChanged               src=system_weather
+evt_0000284/1          t=960   WorldNewsPublished           src=system_news
+evt_0000285            t=960   RegionStabilityChanged       src=system_simulation_director
+evt_0000286            t=1020  RegionStabilityChanged       src=system_simulation_director
+evt_0000287            t=1080  RegionStabilityChanged       src=system_simulation_director
+evt_0000288            t=1140  RegionStabilityChanged       src=system_simulation_director
+evt_0000289            t=1200  WeatherChanged               src=system_weather
+evt_0000289/1          t=1200  WorldNewsPublished           src=system_news
+evt_0000290            t=1200  RegionStabilityChanged       src=system_simulation_director
+evt_0000291            t=1260  RegionStabilityChanged       src=system_simulation_director
+evt_0000292            t=1320  RegionStabilityChanged       src=system_simulation_director
+evt_0000293            t=1380  RegionStabilityChanged       src=system_simulation_director
+evt_0000294            t=1440  WeatherChanged               src=system_weather
+evt_0000294/1          t=1440  WorldNewsPublished           src=system_news
+evt_0000295            t=1440  RegionStabilityChanged       src=system_simulation_director
+
+=== news ===
+t=0     "First Contact" completed; Asterion West community acknowledges the operator  [evt_0000005/1/1]
+t=0     6 x Food Crate delivered to Beacon Clinic  [evt_0000015/1/1]
+t=0     "Road Supplies" completed; Asterion West community acknowledges the operator  [evt_0000019/1/1]
+t=0     4 x Medical Pack delivered to Beacon Clinic  [evt_0000030/1/1]
+t=0     "Sky Relief" completed; Asterion West community acknowledges the operator  [evt_0000034/1/1]
+t=0     10 x Water Pack delivered to Pinewatch  [evt_0000044/1/1]
+t=0     "Harbor Link" completed; Asterion West community acknowledges the operator  [evt_0000048/1/1]
+t=0     "Community Update" completed; Asterion West community acknowledges the operator  [evt_0000054/1/1]
+t=10    Shortage of Water Pack reported at Beacon Clinic  [evt_0000057]
+t=30    Shortage of Food Crate reported at Pinewatch  [evt_0000072]
+t=40    Shortage of Medical Pack reported at Beacon Clinic  [evt_0000077]
+t=60    Shortage of Food Crate reported at Beacon Clinic  [evt_0000090]
+t=60    airfield services at Windfield now restricted  [evt_0000096/1]
+t=60    port services at Harbor West now restricted  [evt_0000096/2]
+t=60    Weather update for Asterion West: storm  [evt_0000096]
+t=100   Shortage of Water Pack reported at Pinewatch  [evt_0000110]
+t=120   airfield services at Windfield now operational  [evt_0000119/1]
+t=120   port services at Harbor West now operational  [evt_0000119/2]
+t=120   Weather update for Asterion West: rain  [evt_0000119]
+t=240   airfield services at Windfield now restricted  [evt_0000148/1]
+t=240   port services at Harbor West now restricted  [evt_0000148/2]
+t=240   Weather update for Asterion West: storm  [evt_0000148]
+t=600   airfield services at Windfield now operational  [evt_0000227/1]
+t=600   port services at Harbor West now operational  [evt_0000227/2]
+t=600   Weather update for Asterion West: rain  [evt_0000227]
+t=720   airfield services at Windfield now restricted  [evt_0000254/1]
+t=720   port services at Harbor West now restricted  [evt_0000254/2]
+t=720   Weather update for Asterion West: storm  [evt_0000254]
+t=780   airfield services at Windfield now operational  [evt_0000268/1]
+t=780   port services at Harbor West now operational  [evt_0000268/2]
+t=780   Weather update for Asterion West: rain  [evt_0000268]
+t=840   airfield services at Windfield now restricted  [evt_0000278/1]
+t=840   port services at Harbor West now restricted  [evt_0000278/2]
+t=840   Weather update for Asterion West: storm  [evt_0000278]
+t=900   airfield services at Windfield now operational  [evt_0000282/1]
+t=900   port services at Harbor West now operational  [evt_0000282/2]
+t=900   Weather update for Asterion West: rain  [evt_0000282]
+t=960   Weather update for Asterion West: clear  [evt_0000284]
+t=1200  Weather update for Asterion West: rain  [evt_0000289]
+t=1440  Weather update for Asterion West: clear  [evt_0000294]
+
+=== debug summary ===
+tick=1440 day=1 08:00 | journal=392 seq=295 | news=40
+player=player_main credits=560 region=region_asterion_west pos=(0.0,0.0,0.0) mode=on_foot vehicle= seat= role=infantry
+region region_asterion_west control=faction_commonwealth stability=0.540 trust=23(Trusted) weather=clear
+faction faction_commonwealth rep=7(Neutral)
+faction faction_northshore rep=0(Neutral)
+faction faction_relief rep=18(Neutral)
+infra airfield_windfield operational
+infra port_harbor_west operational
+node economy_beacon_clinic: food_crate=0(short 1.00) medical_pack=0(short 1.00) water_pack=0(short 1.00)
+node economy_pinewatch: food_crate=0(short 1.00) water_pack=0(short 1.00)
+node economy_port_lyria: food_crate=100(short 0.00) medical_pack=8(short 0.47) spare_parts=17(short 0.15) water_pack=100(short 0.00)
+vehicle vehicle_boat_001 def=utility_patrol_boat_fictional pos=(-600.0,150.0,0.0) cond=1.00 seats=0 cargo=0
+vehicle vehicle_helo_001 def=helicopter_light_fictional pos=(400.0,-500.0,0.0) cond=1.00 seats=0 cargo=0
+vehicle vehicle_truck_001 def=utility_truck_fictional pos=(0.0,0.0,0.0) cond=1.00 seats=0 cargo=0
+mission mission_community_update Completed obj=3 delivered=0
+mission mission_first_contact Completed obj=3 delivered=0
+mission mission_harbor_link Completed obj=3 delivered=0
+mission mission_road_supplies Completed obj=3 delivered=0
+mission mission_sky_relief Completed obj=3 delivered=0
+last events:
+  evt_0000282/1/1 t=900 WorldNewsPublished <- system_news
+  evt_0000282/2 t=900 InfrastructureStatusChanged <- system_weather
+  evt_0000282/2/1 t=900 WorldNewsPublished <- system_news
+  evt_0000282/3 t=900 WorldNewsPublished <- system_news
+  evt_0000283 t=900 RegionStabilityChanged <- system_simulation_director
+  evt_0000284 t=960 WeatherChanged <- system_weather
+  evt_0000284/1 t=960 WorldNewsPublished <- system_news
+  evt_0000285 t=960 RegionStabilityChanged <- system_simulation_director
+  evt_0000286 t=1020 RegionStabilityChanged <- system_simulation_director
+  evt_0000287 t=1080 RegionStabilityChanged <- system_simulation_director
+  evt_0000288 t=1140 RegionStabilityChanged <- system_simulation_director
+  evt_0000289 t=1200 WeatherChanged <- system_weather
+  evt_0000289/1 t=1200 WorldNewsPublished <- system_news
+  evt_0000290 t=1200 RegionStabilityChanged <- system_simulation_director
+  evt_0000291 t=1260 RegionStabilityChanged <- system_simulation_director
+  evt_0000292 t=1320 RegionStabilityChanged <- system_simulation_director
+  evt_0000293 t=1380 RegionStabilityChanged <- system_simulation_director
+  evt_0000294 t=1440 WeatherChanged <- system_weather
+  evt_0000294/1 t=1440 WorldNewsPublished <- system_news
+  evt_0000295 t=1440 RegionStabilityChanged <- system_simulation_director
+
+RESULT: PASS (0 failing step(s))

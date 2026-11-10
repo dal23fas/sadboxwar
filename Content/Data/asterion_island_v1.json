@@ -1,0 +1,183 @@
+{
+  "content_id": "asterion_island_v1",
+  "schema_version": 1,
+  "notice": "Fictional game content for EARTH FRONTIER. Places, organizations, vehicles and quantities are invented game balance data; not a real-world model.",
+  "world": {
+    "id": "world_alternate_earth",
+    "starting_region": "region_asterion_west",
+    "starting_poi": "poi_port_lyria",
+    "starting_credits": 40,
+    "simulation_seed": 178401
+  },
+  "regions": [
+    {
+      "id": "region_asterion_west",
+      "name": "Asterion West",
+      "control_faction_id": "faction_commonwealth",
+      "stability_normalized": 0.78,
+      "population_index": 45,
+      "initial_local_trust": 0,
+      "spawn_poi_id": "poi_port_lyria",
+      "economy_node_ids": ["economy_port_lyria", "economy_beacon_clinic", "economy_pinewatch"],
+      "poi_ids": ["poi_port_lyria", "poi_harbor_west", "poi_windfield", "poi_beacon_clinic", "poi_depot_south", "poi_pinewatch"]
+    }
+  ],
+  "factions": [
+    {"id": "faction_commonwealth", "name": "Asterion Commonwealth", "initial_relation_to_player": 0},
+    {"id": "faction_northshore", "name": "Northshore Pact", "initial_relation_to_player": 0},
+    {"id": "faction_relief", "name": "Relief & Mediation Network", "initial_relation_to_player": 15}
+  ],
+  "items": [
+    {"id": "water_pack", "label": "Water Pack", "category": "civilian_supplies", "base_price_credits": 12, "mass_game_units": 2},
+    {"id": "food_crate", "label": "Food Crate", "category": "civilian_supplies", "base_price_credits": 20, "mass_game_units": 3},
+    {"id": "medical_pack", "label": "Medical Pack", "category": "civilian_supplies", "base_price_credits": 30, "mass_game_units": 2},
+    {"id": "spare_parts", "label": "Spare Parts", "category": "maintenance", "base_price_credits": 18, "mass_game_units": 4}
+  ],
+  "pois": [
+    {"id": "poi_port_lyria",    "name": "Port Lyria",    "kind": "town",     "region_id": "region_asterion_west", "pose": {"position": [0, 0, 0],        "rotation": [0, 0, 0]}},
+    {"id": "poi_harbor_west",   "name": "Harbor West",   "kind": "port",     "region_id": "region_asterion_west", "pose": {"position": [-600, 150, 0],   "rotation": [0, 0, 0]}},
+    {"id": "poi_windfield",     "name": "Windfield",     "kind": "airfield", "region_id": "region_asterion_west", "pose": {"position": [400, -500, 0],   "rotation": [0, 0, 0]}},
+    {"id": "poi_beacon_clinic", "name": "Beacon Clinic", "kind": "clinic",   "region_id": "region_asterion_west", "pose": {"position": [900, 300, 0],    "rotation": [0, 0, 0]}},
+    {"id": "poi_depot_south",   "name": "Depot South",   "kind": "depot",    "region_id": "region_asterion_west", "pose": {"position": [100, -250, 0],   "rotation": [0, 0, 0]}},
+    {"id": "poi_pinewatch",     "name": "Pinewatch",     "kind": "hamlet",   "region_id": "region_asterion_west", "pose": {"position": [-1200, 900, 0],  "rotation": [0, 0, 0]}}
+  ],
+  "npcs": [
+    {"id": "npc_mayor_elara",     "name": "Mayor Elara Venn",     "role_tag": "mayor",          "poi_id": "poi_port_lyria",    "faction_id": "faction_commonwealth"},
+    {"id": "npc_harbor_master",   "name": "Harbor Master Teodor Kael", "role_tag": "harbor_master", "poi_id": "poi_harbor_west", "faction_id": "faction_commonwealth"},
+    {"id": "npc_windfield_chief", "name": "Flight Chief Mara Solenne", "role_tag": "airfield_chief", "poi_id": "poi_windfield", "faction_id": "faction_relief"},
+    {"id": "npc_clinic_nurse",    "name": "Nurse Ilan Doreth",    "role_tag": "clinic_lead",    "poi_id": "poi_beacon_clinic", "faction_id": "faction_relief"},
+    {"id": "npc_depot_mechanic",  "name": "Mechanic Rosa Vint",   "role_tag": "mechanic",       "poi_id": "poi_depot_south",   "faction_id": "faction_commonwealth"}
+  ],
+  "vehicle_definitions": [
+    {"definition_id": "utility_truck_fictional",       "display_name": "Coastal Utility Truck",       "vehicle_class": "ground",     "control_profile": "ground_assisted",   "seats": [{"seat_id": "driver", "is_control_seat": true}, {"seat_id": "passenger"}], "cargo_capacity_game_units": 40},
+    {"definition_id": "helicopter_light_fictional",    "display_name": "Windfield Rescue Helicopter", "vehicle_class": "rotorcraft", "control_profile": "aviation_assisted", "seats": [{"seat_id": "pilot", "is_control_seat": true}, {"seat_id": "passenger"}],  "cargo_capacity_game_units": 24},
+    {"definition_id": "utility_patrol_boat_fictional", "display_name": "Harbor Utility Boat",         "vehicle_class": "naval",      "control_profile": "naval_assisted",    "seats": [{"seat_id": "captain", "is_control_seat": true}, {"seat_id": "passenger"}], "cargo_capacity_game_units": 55}
+  ],
+  "vehicles": [
+    {"id": "vehicle_truck_001", "definition_id": "utility_truck_fictional",       "region_id": "region_asterion_west", "home_poi_id": "poi_depot_south", "condition_normalized": 1.0},
+    {"id": "vehicle_helo_001",  "definition_id": "helicopter_light_fictional",    "region_id": "region_asterion_west", "home_poi_id": "poi_windfield",   "condition_normalized": 1.0},
+    {"id": "vehicle_boat_001",  "definition_id": "utility_patrol_boat_fictional", "region_id": "region_asterion_west", "home_poi_id": "poi_harbor_west", "condition_normalized": 1.0}
+  ],
+  "infrastructure": [
+    {"id": "port_harbor_west",   "kind": "port",     "poi_id": "poi_harbor_west", "region_id": "region_asterion_west"},
+    {"id": "airfield_windfield", "kind": "airfield", "poi_id": "poi_windfield",   "region_id": "region_asterion_west"}
+  ],
+  "economy_nodes": [
+    {
+      "id": "economy_port_lyria", "region_id": "region_asterion_west", "poi_id": "poi_port_lyria",
+      "stocks":           {"water_pack": 30, "food_crate": 20, "medical_pack": 12, "spare_parts": 17},
+      "capacity_by_item": {"water_pack": 100, "food_crate": 100, "medical_pack": 100, "spare_parts": 100},
+      "target_stock":     {"water_pack": 40, "food_crate": 30, "medical_pack": 15, "spare_parts": 20},
+      "production_per_step":  {"water_pack": 2, "food_crate": 1},
+      "consumption_per_step": {"water_pack": 1}
+    },
+    {
+      "id": "economy_beacon_clinic", "region_id": "region_asterion_west", "poi_id": "poi_beacon_clinic",
+      "stocks":           {"water_pack": 5, "food_crate": 3, "medical_pack": 2},
+      "capacity_by_item": {"water_pack": 50, "food_crate": 50, "medical_pack": 50},
+      "target_stock":     {"water_pack": 20, "food_crate": 15, "medical_pack": 10},
+      "consumption_per_step": {"water_pack": 1, "food_crate": 1, "medical_pack": 1}
+    },
+    {
+      "id": "economy_pinewatch", "region_id": "region_asterion_west", "poi_id": "poi_pinewatch",
+      "stocks":           {"water_pack": 4, "food_crate": 6},
+      "capacity_by_item": {"water_pack": 40, "food_crate": 40},
+      "target_stock":     {"water_pack": 20, "food_crate": 15},
+      "consumption_per_step": {"water_pack": 1, "food_crate": 1}
+    }
+  ],
+  "mission_templates": [
+    {
+      "id": "mission_first_contact", "title": "First Contact", "type": "story",
+      "issuer_faction_id": "faction_commonwealth", "region_id": "region_asterion_west",
+      "eligible_vehicle_classes": ["ground"],
+      "objectives": [
+        {"id": "obj_accept",  "type": "Interact", "target_id": "npc_mayor_elara"},
+        {"id": "obj_harbor",  "type": "Interact", "target_id": "npc_harbor_master"},
+        {"id": "obj_debrief", "type": "Interact", "target_id": "npc_mayor_elara"}
+      ],
+      "rewards": {"credits": 30, "local_trust_delta": 2, "faction_reputation_delta": 1},
+      "prerequisites": {}
+    },
+    {
+      "id": "mission_road_supplies", "title": "Road Supplies", "type": "civilian_relief",
+      "issuer_faction_id": "faction_commonwealth", "region_id": "region_asterion_west",
+      "eligible_vehicle_classes": ["ground", "rotorcraft"],
+      "objectives": [
+        {"id": "obj_accept",    "type": "Interact", "target_id": "npc_mayor_elara"},
+        {"id": "obj_transport", "type": "TransportCargo", "item_id": "food_crate", "quantity": 6, "destination_node_id": "economy_beacon_clinic"},
+        {"id": "obj_debrief",   "type": "Interact", "target_id": "npc_mayor_elara"}
+      ],
+      "rewards": {"credits": 120, "local_trust_delta": 6, "faction_reputation_delta": 2},
+      "prerequisites": {"required_completed_missions": ["mission_first_contact"]}
+    },
+    {
+      "id": "mission_sky_relief", "title": "Sky Relief", "type": "civilian_relief",
+      "issuer_faction_id": "faction_relief", "region_id": "region_asterion_west",
+      "eligible_vehicle_classes": ["rotorcraft", "ground"],
+      "objectives": [
+        {"id": "obj_accept",    "type": "Interact", "target_id": "npc_windfield_chief"},
+        {"id": "obj_transport", "type": "TransportCargo", "item_id": "medical_pack", "quantity": 4, "destination_node_id": "economy_beacon_clinic"},
+        {"id": "obj_debrief",   "type": "Interact", "target_id": "npc_windfield_chief"}
+      ],
+      "rewards": {"credits": 160, "local_trust_delta": 6, "faction_reputation_delta": 3},
+      "prerequisites": {"required_completed_missions": ["mission_road_supplies"]}
+    },
+    {
+      "id": "mission_harbor_link", "title": "Harbor Link", "type": "civilian_relief",
+      "issuer_faction_id": "faction_commonwealth", "region_id": "region_asterion_west",
+      "eligible_vehicle_classes": ["naval", "rotorcraft"],
+      "objectives": [
+        {"id": "obj_accept",    "type": "Interact", "target_id": "npc_harbor_master"},
+        {"id": "obj_transport", "type": "TransportCargo", "item_id": "water_pack", "quantity": 10, "destination_node_id": "economy_pinewatch"},
+        {"id": "obj_debrief",   "type": "Interact", "target_id": "npc_harbor_master"}
+      ],
+      "rewards": {"credits": 150, "local_trust_delta": 5, "faction_reputation_delta": 2},
+      "prerequisites": {"required_completed_missions": ["mission_road_supplies"]}
+    },
+    {
+      "id": "mission_community_update", "title": "Community Update", "type": "story",
+      "issuer_faction_id": "faction_commonwealth", "region_id": "region_asterion_west",
+      "eligible_vehicle_classes": ["ground", "rotorcraft", "naval"],
+      "objectives": [
+        {"id": "obj_accept",  "type": "Interact", "target_id": "npc_mayor_elara"},
+        {"id": "obj_clinic",  "type": "Interact", "target_id": "npc_clinic_nurse"},
+        {"id": "obj_debrief", "type": "Interact", "target_id": "npc_mayor_elara"}
+      ],
+      "rewards": {"credits": 60, "local_trust_delta": 4, "faction_reputation_delta": 2},
+      "prerequisites": {"min_local_trust": 10, "required_completed_missions": ["mission_sky_relief", "mission_harbor_link"]}
+    }
+  ],
+  "dialogue": {
+    "npc_mayor_elara": {
+      "default": "Port Lyria keeps going, one delivery at a time. Come back when you have news.",
+      "offer": "You're new on Asterion. Walk the harbor, meet Kael, then report back. That's how trust starts here.",
+      "offer_trusted": "Good to see you again. I have work that needs someone the town already trusts.",
+      "in_progress": "The task isn't finished yet. The clinic is waiting.",
+      "debrief_ready": "You're back. Tell me what happened out there.",
+      "locked": "Not yet. The community needs to see more of you first.",
+      "completed": "Asterion remembers who showed up when it mattered."
+    },
+    "npc_harbor_master": {
+      "default": "The sea decides the schedule here, not me.",
+      "offer": "Pinewatch is cut off again. Load water at Lyria and take the boat across when the weather allows.",
+      "in_progress": "Ten packs for Pinewatch. The boat is at the dock when the port is open.",
+      "debrief_ready": "Pinewatch radioed in. They got the water. Well done, captain.",
+      "completed": "Fair winds. The ferry crews speak well of you."
+    },
+    "npc_windfield_chief": {
+      "default": "Windfield tower. Keep your approach slow and your cargo strapped.",
+      "offer": "Beacon Clinic is short on medical packs. Load at Lyria, fly it over, land where the cross is painted.",
+      "in_progress": "Four medical packs. The helicopter is fueled. Watch the wind.",
+      "debrief_ready": "Clinic confirms receipt. Clean flight.",
+      "completed": "You're on the Windfield roster now."
+    },
+    "npc_clinic_nurse": {
+      "default": "We make do. Every crate counts here.",
+      "default_trusted": "The shelves look different since you started making runs. Thank you."
+    },
+    "npc_depot_mechanic": {
+      "default": "The truck starts, which is more than I can say for most things on this island."
+    }
+  }
+}

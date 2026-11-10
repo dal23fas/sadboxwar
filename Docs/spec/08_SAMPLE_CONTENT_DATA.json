@@ -1,0 +1,104 @@
+{
+  "package": "Earth Frontier - Sample Fictional Content",
+  "schema_version": 1,
+  "notice": "Illustrative game data only; not a game build or real-world operational model.",
+  "world": {
+    "id": "world_alternate_earth",
+    "starting_region": "region_asterion_west",
+    "simulation_seed": 178401,
+    "starting_world_tick": 0
+  },
+  "regions": [
+    {
+      "id": "region_asterion_west",
+      "name": "Asterion West",
+      "control_faction_id": "faction_commonwealth",
+      "stability_normalized": 0.78,
+      "population_index": 45,
+      "economy_node_ids": ["economy_port_lyria", "economy_beacon_clinic"],
+      "poi_ids": ["poi_port_lyria", "poi_harbor_west", "poi_windfield", "poi_beacon_clinic"]
+    }
+  ],
+  "factions": [
+    {"id": "faction_commonwealth", "name": "Asterion Commonwealth", "initial_relation_to_player": 0},
+    {"id": "faction_northshore", "name": "Northshore Pact", "initial_relation_to_player": 0},
+    {"id": "faction_relief", "name": "Relief & Mediation Network", "initial_relation_to_player": 15}
+  ],
+  "items": [
+    {"id": "water_pack", "label": "Water Pack", "category": "civilian_supplies", "base_price_credits": 12, "mass_game_units": 2},
+    {"id": "food_crate", "label": "Food Crate", "category": "civilian_supplies", "base_price_credits": 20, "mass_game_units": 3},
+    {"id": "medical_pack", "label": "Medical Pack", "category": "civilian_supplies", "base_price_credits": 30, "mass_game_units": 2},
+    {"id": "spare_parts", "label": "Spare Parts", "category": "maintenance", "base_price_credits": 18, "mass_game_units": 4}
+  ],
+  "vehicles": [
+    {
+      "id": "vehicle_truck_001",
+      "definition_id": "utility_truck_fictional",
+      "display_name": "Coastal Utility Truck",
+      "vehicle_class": "ground",
+      "control_profile": "ground_assisted",
+      "available_seats": ["driver", "passenger"],
+      "cargo_capacity_game_units": 40,
+      "condition_normalized": 1.0
+    },
+    {
+      "id": "vehicle_helo_001",
+      "definition_id": "helicopter_light_fictional",
+      "display_name": "Windfield Rescue Helicopter",
+      "vehicle_class": "rotorcraft",
+      "control_profile": "aviation_assisted",
+      "available_seats": ["pilot", "passenger"],
+      "cargo_capacity_game_units": 24,
+      "condition_normalized": 1.0
+    },
+    {
+      "id": "vehicle_boat_001",
+      "definition_id": "utility_patrol_boat_fictional",
+      "display_name": "Harbor Utility Boat",
+      "vehicle_class": "naval",
+      "control_profile": "naval_assisted",
+      "available_seats": ["captain", "passenger"],
+      "cargo_capacity_game_units": 55,
+      "condition_normalized": 1.0
+    }
+  ],
+  "economy_nodes": [
+    {
+      "id": "economy_port_lyria",
+      "region_id": "region_asterion_west",
+      "stocks": {"water_pack": 30, "food_crate": 20, "medical_pack": 12, "spare_parts": 17},
+      "capacity_by_item": {"water_pack": 100, "food_crate": 100, "medical_pack": 100, "spare_parts": 100}
+    },
+    {
+      "id": "economy_beacon_clinic",
+      "region_id": "region_asterion_west",
+      "stocks": {"water_pack": 5, "food_crate": 3, "medical_pack": 2},
+      "capacity_by_item": {"water_pack": 50, "food_crate": 50, "medical_pack": 50}
+    }
+  ],
+  "mission_templates": [
+    {
+      "id": "mission_relief_001",
+      "title": "Supplies for Beacon Clinic",
+      "issuer_faction_id": "faction_relief",
+      "type": "civilian_relief",
+      "eligible_vehicle_classes": ["ground", "rotorcraft", "naval"],
+      "objectives": [
+        {"id": "obj_accept", "type": "Interact", "target_id": "npc_mayor_elara"},
+        {"id": "obj_transport", "type": "TransportCargo", "item_id": "water_pack", "quantity": 8, "destination_node_id": "economy_beacon_clinic"},
+        {"id": "obj_debrief", "type": "Interact", "target_id": "npc_mayor_elara"}
+      ],
+      "rewards": {"credits": 120, "local_trust_delta": 6, "faction_reputation_delta": 2},
+      "world_effects": ["ResourceStockChanged", "CivilianReliefDelivered", "WorldNewsPublished"]
+    }
+  ],
+  "sample_event": {
+    "event_id": "evt_0001042",
+    "event_type": "CivilianReliefDelivered",
+    "schema_version": 1,
+    "occurred_at_world_tick": 8742,
+    "source_entity_id": "player_main",
+    "region_id": "region_asterion_west",
+    "payload": {"mission_id": "mission_relief_001", "item_id": "water_pack", "quantity": 8}
+  }
+}

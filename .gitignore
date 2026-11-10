@@ -1,0 +1,25 @@
+# CMake / local builds
+build/
+cmake-build-*/
+
+# Unreal Engine
+Binaries/
+DerivedDataCache/
+Intermediate/
+Saved/
+.vs/
+.vscode/
+*.sln
+*.suo
+*.opensdf
+*.sdf
+*.VC.db
+*.VC.opendb
+*.xcodeproj
+*.xcworkspace
+Content/**/*.uasset.tmp
+
+# Save files produced by tools/tests
+*.efsave
+*.efsave.bak
+*.efsave.tmp

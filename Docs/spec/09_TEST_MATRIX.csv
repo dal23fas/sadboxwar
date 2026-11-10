@@ -1,0 +1,21 @@
+ID,Subsystem,Test,Expected,Priority,Status
+CORE-01,Startup,New game initialization,World state and player entity created,P0,NOT_RUN
+CORE-02,Player,FPS/TPS toggle,Same player identity and mission state,P0,NOT_RUN
+ROLE-01,Possession,Enter and exit ground vehicle,Camera and input switch without inventory loss,P0,NOT_RUN
+ROLE-02,Possession,Enter and exit helicopter,Stable world clock and role transition,P0,NOT_RUN
+ROLE-03,Possession,Enter and exit boat,Same persistent avatar and mission state,P1,NOT_RUN
+SAVE-01,Persistence,Save on foot and reload,Avatar and world tick restored,P0,NOT_RUN
+SAVE-02,Persistence,Save while seated and reload,Valid vehicle-seat restore or safe fallback,P0,NOT_RUN
+MISSION-01,Missions,Complete mission once,Single reward and final state,P0,NOT_RUN
+ECON-01,Economy,Deliver civilian supplies,Destination node stock increases once,P0,NOT_RUN
+REPU-01,Reputation,Relief mission completion,Local and faction reputation updated as specified,P0,NOT_RUN
+NEWS-01,News,Complete relief event,Source event referenced in game news,P1,NOT_RUN
+WORLD-01,Simulation,Region sim without loaded 3D actors,Aggregate simulation advances,P1,NOT_RUN
+WORLD-02,Simulation,Weather restricts harbor,Economic/service state and mission options update,P1,NOT_RUN
+EVT-01,Events,Replay duplicate event ID,No duplicate state mutation,P0,NOT_RUN
+STREAM-01,Streaming,Cross map partition boundary,Vehicle and mission state preserved,P1,NOT_RUN
+CAM-01,Cameras,Switch modes repeatedly,No stuck input or camera clipping,P1,NOT_RUN
+UI-01,UI,Open map/economy/mission screen,Shows authoritative values,P1,NOT_RUN
+AV-01,Aviation,Complete transport objective,Payload transfer and reward happen once,P1,NOT_RUN
+NAV-01,Naval,Complete harbor transport objective,Single economy update and proper disembark,P1,NOT_RUN
+PERF-01,Performance,Active island scene at target settings,FPS and memory captured with actual hardware,P2,NOT_RUN
