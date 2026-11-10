@@ -7,7 +7,7 @@ EF_TEST(core01_new_game_creates_world_state) {
     EF_CHECK_EQ(w.player().entity_id, std::string("player_main"));
     EF_CHECK_EQ(w.player().region_id, std::string("region_asterion_west"));
     EF_CHECK_EQ(w.time().tick, static_cast<Tick>(0));
-    EF_CHECK_EQ(w.vehicles().size(), static_cast<size_t>(4));   // truck, helicopter, boat, research submarine
+    EF_CHECK_EQ(w.vehicles().size(), static_cast<size_t>(6));   // truck, tracked carrier, helicopter, prop plane, boat, research submarine
     EF_CHECK_EQ(w.missions().size(), static_cast<size_t>(5));
     EF_CHECK_EQ(w.economyNode("economy_beacon_clinic")->stock("food_crate"), 3);
     EF_CHECK_EQ(w.faction("faction_relief")->reputation, 15);

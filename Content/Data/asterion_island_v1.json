@@ -576,6 +576,44 @@
           0
         ]
       }
+    },
+    {
+      "id": "vehicle_plane_001",
+      "definition_id": "prop_trainer_fictional",
+      "region_id": "region_asterion_west",
+      "home_poi_id": "poi_windfield",
+      "condition_normalized": 1.0,
+      "pose": {
+        "position": [
+          430,
+          -470,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "id": "vehicle_tracked_001",
+      "definition_id": "tracked_transport_fictional",
+      "region_id": "region_asterion_west",
+      "home_poi_id": "poi_depot_south",
+      "condition_normalized": 1.0,
+      "pose": {
+        "position": [
+          120,
+          -270,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ]
+      }
     }
   ],
   "infrastructure": [
@@ -712,6 +750,7 @@
       "region_id": "region_asterion_west",
       "eligible_vehicle_classes": [
         "ground",
+        "armored",
         "rotorcraft"
       ],
       "objectives": [
@@ -752,6 +791,7 @@
       "region_id": "region_asterion_west",
       "eligible_vehicle_classes": [
         "rotorcraft",
+        "fixed_wing",
         "ground"
       ],
       "objectives": [

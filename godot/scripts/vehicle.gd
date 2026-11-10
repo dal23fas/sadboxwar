@@ -24,6 +24,10 @@ var speed := 0.0          # forward m/s (+ forward)
 var vertical := 0.0       # m/s (rotorcraft/submarine)
 var steer := 0.0          # -1..1 smoothed
 var depth_target := 0.0   # submarine
+var spinners: Array = []
+var wheels: Array = []
+var throttle_setting := 0.0   # fixed-wing persistent throttle 0..1
+var pitch_angle := 0.0        # fixed-wing
 const SEA_LEVEL := 0.0
 
 func setup(state: Dictionary, definition: Dictionary) -> void:
@@ -35,12 +39,11 @@ func setup(state: Dictionary, definition: Dictionary) -> void:
 	for s in definition.get("seats", []):
 		if s.get("is_control_seat", false):
 			control_seat = s["seat_id"]
-	var size := _size_for_class()
+	var visuals := VehicleVisuals.build(state["definition_id"], vehicle_class, self)
+	var size: Vector3 = visuals["size"]
+	spinners = visuals["spinners"]
+	wheels = visuals["wheels"]
 	var col := CollisionShape3D.new(); var box := BoxShape3D.new(); box.size = size; col.shape = box; col.position.y = size.y * 0.5; add_child(col)
-	var mesh := MeshInstance3D.new(); var bm := BoxMesh.new(); bm.size = size; mesh.mesh = bm; mesh.position.y = size.y * 0.5
-	var mat := StandardMaterial3D.new(); mat.albedo_color = _color_for_class(); mesh.material_override = mat; add_child(mesh)
-	var nose := MeshInstance3D.new(); var nb := BoxMesh.new(); nb.size = Vector3(size.x * 0.6, size.y * 0.4, 0.6); nose.mesh = nb
-	nose.position = Vector3(0, size.y * 0.5, -size.z * 0.5 - 0.3); nose.material_override = mat; add_child(nose)   # -Z is forward
 	label = Label3D.new(); label.text = display_name; label.position.y = size.y + 1.5; label.font_size = 40; label.pixel_size = 0.02
 	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED; label.no_depth_test = true; add_child(label)
 	chase = SpringArm3D.new(); chase.spring_length = max(12.0, size.z * 2.5); chase.position.y = size.y + 2.0; chase.rotation_degrees.x = -18; chase.collision_mask = 0; add_child(chase)
@@ -48,25 +51,6 @@ func setup(state: Dictionary, definition: Dictionary) -> void:
 	cockpit_cam = Camera3D.new(); cockpit_cam.position = Vector3(0, size.y * 0.9, -size.z * 0.25); add_child(cockpit_cam)
 	sync_from_state(state)
 	set_physics_process(false)
-
-func _size_for_class() -> Vector3:
-	match vehicle_class:
-		"ground": return Vector3(2.4, 2.2, 6.0)
-		"armored": return Vector3(3.2, 2.6, 7.0)
-		"rotorcraft": return Vector3(2.6, 2.8, 10.0)
-		"fixed_wing": return Vector3(12.0, 3.0, 9.0)
-		"naval": return Vector3(4.0, 2.5, 12.0)
-		"submarine": return Vector3(3.5, 3.5, 16.0)
-	return Vector3(2, 2, 4)
-
-func _color_for_class() -> Color:
-	match vehicle_class:
-		"ground": return Color(0.85, 0.6, 0.2)
-		"armored": return Color(0.45, 0.5, 0.35)
-		"rotorcraft": return Color(0.9, 0.9, 0.95)
-		"naval": return Color(0.3, 0.5, 0.75)
-		"submarine": return Color(0.2, 0.25, 0.3)
-	return Color.GRAY
 
 func sync_from_state(state: Dictionary) -> void:
 	if possessed_by != null:
@@ -91,6 +75,10 @@ func possess(_player: Node) -> void:
 func unpossess() -> void:
 	possessed_by = null
 	set_physics_process(false)
+	rotation.x = 0.0
+	rotation.z = 0.0
+	pitch_angle = 0.0
+	throttle_setting = 0.0
 	sync_from_state(World.vehicle_state(vehicle_id))
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -120,6 +108,7 @@ func _physics_process(delta: float) -> void:
 	match vehicle_class:
 		"ground", "armored": _drive(delta, throttle, steer_in, assist, stab, inertia)
 		"rotorcraft": _fly(delta, throttle, steer_in, up_in, assist, stab, inertia, wind)
+		"fixed_wing": _fly_plane(delta, throttle, steer_in, up_in, assist, stab, inertia, wind)
 		"naval": _sail(delta, throttle, steer_in, assist, stab, inertia, wind, false, prof)
 		"submarine": _sail(delta, throttle, steer_in, assist, stab, inertia, wind, true, prof)
 		_: _drive(delta, throttle, steer_in, assist, stab, inertia)
@@ -138,7 +127,8 @@ func _drive(delta: float, throttle: float, steer_in: float, assist: float, stab:
 		speed = move_toward(speed, 0.0, lerp(4.0, 1.0, inertia) * delta)   # rolling resistance
 	steer = move_toward(steer, steer_in, lerp(2.5, 9.0, assist) * delta)      # assist = steering response
 	var speed_factor := clamp(abs(speed) / max(max_speed, 1.0), 0.0, 1.0)
-	var yaw_rate := turn * steer * clamp(abs(speed) / 3.0, 0.0, 1.0) * lerp(1.0, 1.0 - 0.6 * speed_factor, stab)  # stabilization reduces high-speed oversteer
+	var pivot := 1.0 if vehicle_class == "armored" else clamp(abs(speed) / 3.0, 0.0, 1.0)   # tracked vehicles pivot in place
+	var yaw_rate := turn * steer * pivot * lerp(1.0, 1.0 - 0.6 * speed_factor, stab)  # stabilization reduces high-speed oversteer
 	rotation.y -= yaw_rate * delta * sign(speed if abs(speed) > 0.1 else 1.0)
 	var forward := -transform.basis.z
 	velocity.x = forward.x * speed; velocity.z = forward.z * speed
@@ -212,6 +202,8 @@ func _update_hud() -> void:
 		extra = "  alt %.0f m  vs %.1f m/s" % [global_position.y, vertical]
 	elif vehicle_class == "submarine":
 		extra = "  depth %.0f m (target %.0f)" % [-global_position.y, -depth_target]
+	elif vehicle_class == "fixed_wing":
+		extra = "  alt %.0f m  throttle %d%%  %s" % [global_position.y, int(throttle_setting * 100), "STALL" if speed < float(handling.get("stall_speed_mps", 25)) and global_position.y > 1.0 else ""]
 	hud.set_vehicle_readout("%s · %s · %.0f km/h%s" % [display_name, World.realism.get("resolved", {}).get(realism_category, {}).get("preset_label", "?"), abs(speed) * 3.6, extra])
 	var poi := get_tree().current_scene.nearest_poi_id(global_position, 40.0)
 	var lines := ["[X] Exit · [C] Camera"]
@@ -219,8 +211,69 @@ func _update_hud() -> void:
 		lines.append("[W/S] Thrust · [A/D] Bank · [Space/Ctrl] Collective · [Q/E] Yaw")
 	elif vehicle_class == "submarine":
 		lines.append("[W/S] Throttle · [A/D] Rudder · [Space] Surface · [Ctrl] Dive")
+	elif vehicle_class == "fixed_wing":
+		lines.append("[W/S] Throttle up/down · [A/D] Roll · [Space] Pitch up · [Ctrl] Pitch down")
 	else:
 		lines.append("[W/S] Throttle · [A/D] Steer")
 	if poi != "" and World.economy_node_at_poi(poi) != "":
 		lines.append("[1-4] Load item · [R] Deliver carried")
 	hud.set_prompt("\n".join(lines))
+
+# ---------------------------------------------------------------- fixed-wing (kinematic game physics, assists layered)
+func _fly_plane(delta: float, throttle_in: float, roll_in: float, pitch_in: float, assist: float, stab: float, inertia: float, wind: float) -> void:
+	var max_speed := float(handling.get("max_speed_mps", 70))
+	var stall := float(handling.get("stall_speed_mps", 25))
+	var climb := float(handling.get("climb_rate_mps", 5))
+	var roll_rate := deg_to_rad(float(handling.get("roll_rate_dps", 90)))
+	var pitch_rate := deg_to_rad(float(handling.get("pitch_rate_dps", 30)))
+	throttle_setting = clamp(throttle_setting + throttle_in * delta * lerp(0.9, 0.35, inertia), 0.0, 1.0)
+	var target_speed := throttle_setting * max_speed
+	speed = move_toward(speed, target_speed, max_speed * 0.25 * delta * lerp(1.6, 0.6, inertia))
+	var grounded := global_position.y <= 0.3 and vertical <= 0.0
+	var flying := speed > stall
+	# roll -> bank -> turn; arcade assist auto-levels the wings
+	var roll_target := -roll_in * deg_to_rad(45.0)
+	rotation.z = move_toward(rotation.z, roll_target if abs(roll_in) > 0.01 else lerp(rotation.z, 0.0, stab), roll_rate * delta * lerp(0.6, 1.4, assist))
+	if flying:
+		rotation.y -= rotation.z * 0.9 * delta * (speed / max_speed + 0.3)
+	# pitch; auto-trim toward level when no input (assist)
+	var pitch_target := pitch_in * deg_to_rad(25.0)
+	pitch_angle = move_toward(pitch_angle, pitch_target if abs(pitch_in) > 0.01 else lerp(pitch_angle, 0.0, stab * 0.5), pitch_rate * delta * lerp(0.6, 1.5, assist))
+	if grounded and pitch_angle < 0.0:
+		pitch_angle = 0.0
+	rotation.x = pitch_angle * 0.6
+	var forward := -transform.basis.z
+	var lift_factor := clamp((speed - stall) / max(stall, 1.0), 0.0, 1.0)
+	if flying:
+		vertical = sin(pitch_angle) * speed * 0.5 * lift_factor + (climb * 0.3 * lift_factor if pitch_angle > 0.05 else 0.0)
+		if abs(pitch_in) < 0.01 and stab > 0.6:
+			vertical = lerp(vertical, 0.0, 0.5)     # altitude hold (arcade/balanced)
+	else:
+		vertical = move_toward(vertical, -6.0 * (1.0 - lift_factor), 4.0 * delta)   # below stall speed: sink
+		if grounded:
+			vertical = 0.0
+	var drift := Vector3(wind, 0, wind * 0.4) * (1.0 - stab * 0.6)
+	velocity = Vector3(forward.x, 0, forward.z).normalized() * speed + Vector3(0, vertical, 0) + drift
+	move_and_slide()
+	if global_position.y < 0.0:
+		global_position.y = 0.0
+		vertical = 0.0
+		if speed > stall * 1.3 and throttle_setting < 0.3:
+			speed = move_toward(speed, 0.0, 8.0 * delta)   # hard landing: brakes bite (abstract)
+
+func _process(delta: float) -> void:
+	var spin := 0.0
+	match vehicle_class:
+		"rotorcraft": spin = (6.0 if possessed_by != null else 0.0) + abs(vertical) + abs(speed) * 0.05
+		"fixed_wing": spin = throttle_setting * 40.0 + abs(speed) * 0.2
+		"naval": spin = 1.5
+		"submarine": spin = abs(speed) * 1.5
+	for sp in spinners:
+		if vehicle_class == "fixed_wing" or vehicle_class == "submarine":
+			sp.rotate_z(spin * delta)
+		elif vehicle_class == "naval":
+			sp.rotate_y(spin * delta)
+		else:
+			sp.rotate_y(spin * delta)
+	for w in wheels:
+		w.rotate_object_local(Vector3(0, 1, 0), speed * delta * 2.0)

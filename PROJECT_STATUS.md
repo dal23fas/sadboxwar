@@ -1,7 +1,7 @@
 # PROJECT_STATUS — EARTH FRONTIER
 
 **Ημερομηνία:** 2026-11-10  
-**Version / branch:** `0.0.2-phase1-godot` / `main`  
+**Version / branch:** `0.0.3-all-classes` / `main`  
 **Milestone:** Phase 0 complete (core) · Phase 1 + vehicle/realism prototype in Godot (unverified) · supplement integrated
 
 ## Engine
@@ -23,7 +23,8 @@
 | ef_server (TCP bridge) | IMPLEMENTED + TESTED (Python smoke incl. reconnect) | `Tools/ef_server` |
 | HTML world viewer | IMPLEMENTED + TESTED (headless Chromium, screenshot) | `Tools/ef_viewer`, `Docs/viewer_acceptance_phase0b.png` |
 | GDExtension wrapper | **STUB / UNVERIFIED** | `Source/EFGodot` |
-| Godot: World bridge (ext or TCP), input map, bootstrap scene, FPS/TPS player, NPC interact/dialogue, mission accept, vehicle enter/exit, kinematic driving (wheeled/tracked), helicopter, boat, submarine (dive/surface), cargo load/deliver, HUD, save/load, debug overlay, Realism settings panel | **PROTOTYPE / UNVERIFIED** | `godot/scripts/*.gd` |
+| Godot: World bridge (ext or TCP), input map, bootstrap scene (land/sea/runway/quay), FPS/TPS player, NPC interact/dialogue, mission accept, vehicle enter/exit, ONE kinematic controller for wheeled / tracked (pivot turn) / helicopter / **fixed-wing (throttle, stall, bank-to-turn, auto-trim)** / boat / submarine (dive/surface), cargo load/deliver, HUD, save/load, debug overlay, Realism settings panel | **PROTOTYPE / UNVERIFIED** | `godot/scripts/*.gd` |
+| Vehicle visuals: procedural fictional silhouettes per class with spinning rotors/props/radar and wheels; `.glb` override by definition_id | **PROTOTYPE / UNVERIFIED** | `godot/scripts/vehicle_visuals.gd`, `Docs/ASSET_PIPELINE.md` |
 | Vehicle physics (real rigid-body, terrain, buoyancy), AI, interiors, audio, localization, Web export | NOT STARTED | — |
 
 ## Last verified build (this environment)
@@ -34,7 +35,7 @@
 
 ## Known bugs / limitations
 1. Godot scripts γράφτηκαν χωρίς editor: περιμένω μικρά parse/API λάθη στο πρώτο άνοιγμα (στείλε το Output panel).
-2. Οχήματα = kinematic placeholders (CharacterBody3D), όχι RigidBody/VehicleBody3D. Έδαφος επίπεδο. Θάλασσα = επίπεδη πλάκα δυτικά του x=-400.
+2. Οχήματα = kinematic placeholders (CharacterBody3D), όχι RigidBody/VehicleBody3D. Έδαφος επίπεδο, θάλασσα επίπεδη πλάκα δυτικά του x=-400. Μοντέλα = procedural σιλουέτες μέχρι να μπουν .glb (ASSET_PIPELINE.md).
 3. Economy balance: κλινική/Pinewatch αδειάζουν σε ~1 ημέρα· η δράση των §8 formulas είναι ορατή αλλά αυστηρή.
 4. Hourly `RegionStabilityChanged` θόρυβος στο journal κατά το recovery.
 5. Web export του GDExtension απαιτεί emscripten και αντικατάσταση του file-based `FileSaveStorage` (IndexedDB/user://) — Phase 8.

@@ -57,6 +57,11 @@ func _build_environment() -> void:
 	# land: big flat slab; sea: blue plane to the west/north where the harbour, reef and Pinewatch are
 	_add_slab(Vector3(400, -0.5, 0), Vector3(3200, 1, 3200), Color(0.36, 0.45, 0.30), true)
 	_add_slab(Vector3(-1400, -0.6, -300), Vector3(2000, 1, 3400), Color(0.12, 0.30, 0.48), false)
+	# Windfield runway (core (400,-500) -> godot (400, 0, 500)), along x
+	_add_slab(Vector3(400, -0.44, 500), Vector3(700, 0.12, 30), Color(0.3, 0.3, 0.32), false)
+	# Harbour West quay and Depot South apron
+	_add_slab(Vector3(-560, -0.44, -150), Vector3(80, 0.12, 60), Color(0.45, 0.42, 0.4), false)
+	_add_slab(Vector3(100, -0.44, 250), Vector3(90, 0.12, 70), Color(0.3, 0.3, 0.32), false)
 	# a few blocks so the town reads as a town
 	for i in range(6):
 		_add_slab(Vector3(-25 + i * 10, 3, 20 + (i % 2) * 14), Vector3(7, 6, 7), Color(0.72, 0.68, 0.6), true)

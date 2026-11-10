@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 0.0.3-all-classes — 2026-11-10
+
+### Added
+- Content: `vehicle_plane_001` (Skylark prop trainer @ Windfield) and `vehicle_tracked_001` (tracked carrier @ Depot South); Sky Relief accepts fixed-wing, Road Supplies accepts armored. 6 vehicles, all six classes present in the slice.
+- Godot: fixed-wing flight model (`_fly_plane`: persistent throttle, stall/sink, bank-to-turn, pitch, auto-level/altitude-hold assists), tracked pivot steering, runway/quay/apron slabs.
+- Godot: `vehicle_visuals.gd` — procedural fictional silhouettes for every class (spinning rotor/prop/radar, rolling wheels) and automatic `.glb` override from `godot/assets/vehicles/<definition_id>.glb`.
+- `Docs/ASSET_PIPELINE.md`: model conventions, licensing rules (original designs, CC0/CC-BY sources, LICENSES.md), visual-quality roadmap V1–V6.
+
 ## 0.0.2-phase1-godot — 2026-11-10
 
 ### Changed
